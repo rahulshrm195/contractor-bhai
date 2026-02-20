@@ -2,24 +2,32 @@
 
 ---
 
+## v2.4 — 21 Feb 2026
+### Fixed
+- Theme toggle was not working — CSS used `data-theme="dark"` but JS was toggling `.dark` class — mismatch fixed
+- Theme now correctly saves and restores across sessions
+### Removed
+- Duplicate 📋 icon button in header — was doing same thing as "+ Post Work" button
+- Header now clean: Theme toggle · Language toggle · + Post Work
+
+---
+
 ## v2.3 — 21 Feb 2026
 ### Added
-- Availability is now the default sort — Available Now always shows first, then This Week, then Busy/Booked
-- "Available Only" toggle button on the stats bar — hides Busy/Booked contractors
-- Toggle keeps "Available Now" AND "Available This Week" — because someone free next week is still useful
-- Toggle turns green when active so user knows filter is on
+- Availability default sort — Available Now first, then This Week, then Busy/Booked
+- "Available Only" toggle button — hides Busy/Booked, keeps Now + This Week
 
 ---
 
 ## v2.2 — 21 Feb 2026
 ### Fixed
-- Contractor card layout fixed — avatar, name, trade, rate all on same row as intended
+- Contractor card layout fixed — all info on same row as intended
 
 ---
 
 ## v2.1 — 21 Feb 2026
 ### Fixed
-- Contractor cards had too much blank vertical space — tightened all padding
+- Contractor cards had too much blank vertical space
 
 ---
 
@@ -31,14 +39,13 @@
 
 ## v1.9 — 21 Feb 2026
 ### Fixed
-- Profile hero layout broken on mobile — now stacks vertically centered
-- Stats 2x2 grid moved below hero as full-width section
+- Profile hero layout broken on mobile
 
 ---
 
 ## v1.8 — 21 Feb 2026
 ### Fixed
-- Profile stats changed from cramped horizontal row to clean 2x2 grid
+- Profile stats changed to clean 2x2 grid
 
 ---
 
@@ -56,7 +63,7 @@
 
 ## v1.5 — 21 Feb 2026
 ### Fixed
-- Jobs & Messages tabs not working — div ID mismatch fixed
+- Jobs & Messages tabs not working
 
 ---
 

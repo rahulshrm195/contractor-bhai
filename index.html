@@ -1483,8 +1483,7 @@ html, body {
       <div class="header-right">
         <div class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</div>
         <div class="icon-btn" id="lang-toggle-btn" onclick="toggleLang()" title="Toggle Language" style="font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.5px;">हिं</div>
-        <div class="icon-btn" onclick="openPostModal()">📋</div>
-        <button class="post-btn" data-i18n="postJob" onclick="openPostModal()">+ Post Job</button>
+        <button class="post-btn" data-i18n="postJob" onclick="openPostModal()">+ Post Work</button>
       </div>
     </div>
 
@@ -2802,9 +2801,11 @@ function applyTranslations() {
 }
 
 function toggleTheme() {
-  const isDark = document.documentElement.classList.toggle('dark');
-  document.getElementById('theme-toggle-btn').textContent = isDark ? '🌙' : '☀️';
-  localStorage.setItem('cb-theme', isDark ? 'dark' : 'light');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const newTheme = isDark ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', newTheme);
+  document.getElementById('theme-toggle-btn').textContent = newTheme === 'dark' ? '🌙' : '☀️';
+  localStorage.setItem('cb-theme', newTheme);
 }
 
 // ============================================================
@@ -2812,11 +2813,10 @@ function toggleTheme() {
 // ============================================================
 window.addEventListener('DOMContentLoaded', () => {
   // Theme
-  if (localStorage.getItem('cb-theme') === 'dark') {
-    document.documentElement.classList.add('dark');
-    const btn = document.getElementById('theme-toggle-btn');
-    if (btn) btn.textContent = '🌙';
-  }
+  const savedTheme = localStorage.getItem('cb-theme') || 'light';
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const btn = document.getElementById('theme-toggle-btn');
+  if (btn) btn.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
 
   // Wait for Firebase to initialize then watch auth state
   const checkFB = setInterval(() => {
