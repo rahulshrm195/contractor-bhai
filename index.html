@@ -1,0 +1,2708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Contractor Bhai</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase v10 SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs,
+  query, orderBy, limit, where, onSnapshot, serverTimestamp, updateDoc }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ============================================================
+//  PASTE YOUR FIREBASE CONFIG HERE (from Firebase Console)
+// ============================================================
+const firebaseConfig = {
+  apiKey:            "AIzaSyBVg4OjWGG2akm90VGpZ5IlXTK5iPxIoLk",
+  authDomain:        "contractor-bhai.firebaseapp.com",
+  projectId:         "contractor-bhai",
+  storageBucket:     "contractor-bhai.firebasestorage.app",
+  messagingSenderId: "184574140791",
+  appId:             "1:184574140791:web:5d4a83ebeb9f2ee656c172"
+};
+// ============================================================
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+window._FB = { auth, db, signOut,
+  RecaptchaVerifier, signInWithPhoneNumber, onAuthStateChanged,
+  doc, setDoc, getDoc, collection, addDoc, getDocs,
+  query, orderBy, limit, where, onSnapshot, serverTimestamp, updateDoc };
+
+// Seed demo data into Firestore on first load (runs once)
+window._seedFirestore = async function() {
+  const { doc, setDoc, getDoc, db, collection, addDoc, serverTimestamp } = window._FB;
+  const flagRef = doc(db, 'meta', 'seeded');
+  const flagSnap = await getDoc(flagRef);
+  if (flagSnap.exists()) return; // already seeded
+
+  const contractors = [
+    { firstName:'Ramesh', lastName:'Sharma', mobile:'9876543210', trade:'carpentry', rateType:'sqft', rate:380, exp:14, avail:'now', availFrom:'Abhi se', location:'Mumbai, Maharashtra', rating:4.9, jobsDone:187, bio:'14 saal se furniture aur carpentry ka sub-contract karta hoon. Turnkey furniture projects mein specialist. Apni 6 logo ki trained team hai.', skills:['Modular Furniture','Wardrobe','False Ceiling','Site Fitting','Wooden Flooring'], workTypes:['Per Sqft','Lumpsum','Negotiable'], color:'#c2410c', verified:true, isContractor:true },
+    { firstName:'Suresh', lastName:'Patel', mobile:'9823456781', trade:'plumbing', rateType:'lumpsum', rate:null, exp:9, avail:'week', availFrom:'Agle hafte se', location:'Ahmedabad, Gujarat', rating:4.8, jobsDone:134, bio:'Plumbing sub-contractor. Lumpsum mein kaam leta hoon. Drawing milne ke baad rate pakki. 4 logo ka crew.', skills:['Complete Plumbing','Sanitation','Water Supply','Drainage','Society Work'], workTypes:['Lumpsum','Per Unit'], color:'#0ea5e9', verified:true, isContractor:true },
+    { firstName:'Manoj', lastName:'Yadav', mobile:'9765432109', trade:'masonry', rateType:'sqft', rate:85, exp:18, avail:'now', availFrom:'Abhi se', location:'Delhi, NCR', rating:4.7, jobsDone:256, bio:'18 saal se masonry sub-contracting. RCC, brickwork, plastering. 10-15 logo ki team mobilize ho sakti hai.', skills:['RCC Work','Brickwork','Plastering','Waterproofing','Tiling'], workTypes:['Per Sqft','Per Cubic Mtr','Lumpsum'], color:'#16a34a', verified:true, isContractor:true },
+    { firstName:'Priya', lastName:'Nair', mobile:'9845671230', trade:'painting', rateType:'sqft', rate:18, exp:7, avail:'full', availFrom:'15 din baad', location:'Bangalore, Karnataka', rating:4.6, jobsDone:98, bio:'Painting sub-contractor. Per sqft rate mein putty, primer aur 2 coat finish sab include.', skills:['Interior Painting','Exterior','Texture Work','Waterproofing','Wood Polish'], workTypes:['Per Sqft','Lumpsum'], color:'#be185d', verified:true, isContractor:true },
+    { firstName:'Raju', lastName:'Mistri', mobile:'9912345670', trade:'carpentry', rateType:'sqft', rate:420, exp:22, avail:'now', availFrom:'Abhi se', location:'Pune, Maharashtra', rating:4.9, jobsDone:341, bio:'22 saal ka anubhav furniture sub-contracting. Wardrobe, kitchen, sofa sab. Lumpsum commitment deta hoon.', skills:['Wardrobe','Modular Kitchen','Sofa Frame','False Ceiling','Door Frame'], workTypes:['Per Sqft','Lumpsum','Percentage'], color:'#d97706', verified:true, isContractor:true },
+    { firstName:'Anil', lastName:'Kumar', mobile:'9934567812', trade:'hvac', rateType:'negotiable', rate:null, exp:11, avail:'week', availFrom:'10 din baad', location:'Hyderabad, Telangana', rating:4.8, jobsDone:112, bio:'AC aur HVAC sub-contractor. Lumpsum ya per TR basis pe. Drawing milne ke baad pakka quote.', skills:['Split AC Install','Duct AC','VRF System','Chiller','AMC Work'], workTypes:['Lumpsum','Per TR','Negotiable'], color:'#7c3aed', verified:true, isContractor:true },
+    { firstName:'Santosh', lastName:'Weld', mobile:'9878901234', trade:'welding', rateType:'kg', rate:65, exp:13, avail:'full', availFrom:'3 hafte baad', location:'Chennai, Tamil Nadu', rating:4.5, jobsDone:203, bio:'Structural steel aur MS fabrication. Per kg ya per sqft. TIG, MIG, Arc.', skills:['MS Fabrication','Structural Steel','Railing','Staircase','Gate Making'], workTypes:['Per Kg','Per Sqft','Lumpsum'], color:'#059669', verified:false, isContractor:true },
+    { firstName:'Deepak', lastName:'Electricals', mobile:'9856234710', trade:'electrical', rateType:'negotiable', rate:null, exp:8, avail:'now', availFrom:'Abhi se', location:'Jaipur, Rajasthan', rating:4.4, jobsDone:76, bio:'Electrical sub-contracting. Per point ya per flat basis pe bhi.', skills:['Complete Wiring','DB Setup','Light-Power Points','AC Points','Solar'], workTypes:['Per Point','Per Flat','Lumpsum'], color:'#d97706', verified:false, isContractor:true },
+    { firstName:'Kavita', lastName:'Tiles', mobile:'9867543201', trade:'masonry', rateType:'sqft', rate:95, exp:6, avail:'week', availFrom:'Is hafte', location:'Nashik, Maharashtra', rating:4.7, jobsDone:89, bio:'Tiling sub-contractor. Per sqft sirf labour. Vitrified, bathroom, kitchen tiles.', skills:['Vitrified Tiling','Bathroom Tiles','Kitchen Tiles','Anti-skid','Marble Work'], workTypes:['Per Sqft','Lumpsum'], color:'#16a34a', verified:true, isContractor:true },
+  ];
+
+  for (const c of contractors) {
+    await setDoc(doc(db, 'users', 'demo_' + c.mobile), { ...c, uid: 'demo_' + c.mobile, createdAt: serverTimestamp() });
+  }
+
+  const jobs = [
+    { title:'Modular Furniture Sub-Contract — 2BHK x24 Flats', company:'Amar Furniture Works', trade:'carpentry', icon:'🪵', budgetType:'Per Sqft', budget:'Rs 350-400/sqft', scope:'24 flats - wardrobe, kitchen, TV unit. Material humara, sirf labour.', location:'Mumbai, Maharashtra', start:'Turant', urgent:true, desc:'Turnkey sub-contractor chahiye measurement se install tak.' },
+    { title:'Complete HVAC — IT Building 50,000 sqft', company:'Prestige Tech Park', trade:'hvac', icon:'❄️', budgetType:'Lumpsum', budget:'Rs 8.5 Lakh', scope:'Full HVAC install. Drawing available.', location:'Bangalore, Karnataka', start:'15 March', urgent:true, desc:'VRF system + duct + grilles. Quote drawing dekhke.' },
+    { title:'Civil Sub-Contract — 200 Unit Society', company:'DLF Projects', trade:'masonry', icon:'🧱', budgetType:'Per Sqft', budget:'Rs 85/sqft', scope:'Plastering, tiling, brickwork. Phase 1: 50 flats.', location:'Gurugram, Haryana', start:'Turant', urgent:true, desc:'Rate drawing dekhke final karengi.' },
+    { title:'Interior Painting — Commercial Complex', company:'Phoenix Projects', trade:'painting', icon:'🎨', budgetType:'Per Sqft', budget:'Rs 18-22/sqft', scope:'1.2 lakh sqft putty to finish.', location:'Hyderabad, Telangana', start:'1 April', urgent:false, desc:'2 coat OBD + primer. 10-15 painter team.' },
+    { title:'Complete Plumbing — Township 200 Units', company:'Shapoorji Pallonji', trade:'plumbing', icon:'🔧', budgetType:'Lumpsum', budget:'Discuss Karenge', scope:'CPVC supply + drainage. Drawing ready.', location:'Chennai, Tamil Nadu', start:'20 March', urgent:false, desc:'Lumpsum quote chahiye.' },
+    { title:'Wardrobe Sub-Contract — Builder Flats x80', company:'Godrej Properties', trade:'carpentry', icon:'🪵', budgetType:'Per Sqft', budget:'Rs 320/sqft', scope:'80 flats wardrobe + kitchen. Material ready.', location:'Pune, Maharashtra', start:'5 April', urgent:false, desc:'Labour team chahiye.' },
+    { title:'MS Fabrication — Industrial Shed 80MT', company:'Tata Projects Ltd', trade:'welding', icon:'🔥', budgetType:'Per Kg', budget:'Rs 65/kg', scope:'Industrial shed - columns, rafters, purlins.', location:'Pune, Maharashtra', start:'10 April', urgent:false, desc:'Welder team chahiye.' },
+  ];
+
+  for (const j of jobs) {
+    await addDoc(collection(db, 'jobs'), { ...j, postedBy: 'seed', createdAt: serverTimestamp() });
+  }
+
+  await setDoc(flagRef, { seededAt: serverTimestamp() });
+  console.log('Firestore seeded!');
+};
+
+// Once Firebase initializes, trigger seed
+window.addEventListener('load', () => {
+  // Small delay to ensure _FB is ready
+  setTimeout(() => window._seedFirestore && window._seedFirestore(), 1500);
+});
+</script>
+<style>
+:root {
+  --bg: #f5f4f1;
+  --surface: #ffffff;
+  --surface2: #f0eeea;
+  --surface3: #e8e6e1;
+  --border: #e0ddd7;
+  --accent: #ff6b00;
+  --accent2: #e08000;
+  --text: #1a1714;
+  --muted: #8a8480;
+  --green: #16a34a;
+  --red: #dc2626;
+  --blue: #2563eb;
+  --radius: 12px;
+  --shadow: 0 1px 4px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07);
+}
+
+/* DARK THEME OVERRIDES */
+[data-theme="dark"] {
+  --bg: #0f0f0f;
+  --surface: #1a1a1a;
+  --surface2: #222;
+  --surface3: #2a2a2a;
+  --border: #2e2e2e;
+  --accent: #ff6b00;
+  --accent2: #ffaa00;
+  --text: #f0ede8;
+  --muted: #777;
+  --green: #22c55e;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --shadow: 0 1px 4px rgba(0,0,0,0.4);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+html, body {
+  height: 100%;
+  height: 100dvh;
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* APP SHELL */
+#app {
+  max-width: 430px;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* SCREENS */
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  overflow: hidden;
+}
+.screen.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* SCROLLABLE AREA */
+.scroll-area {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 90px;
+}
+.scroll-area::-webkit-scrollbar { display: none; }
+
+/* ===== AUTH SCREEN ===== */
+#screen-auth {
+  background: var(--bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  align-items: center;
+  padding: 40px 24px 60px;
+}
+#screen-auth::-webkit-scrollbar { width: 4px; }
+#screen-auth::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+#screen-auth::-webkit-scrollbar-track { background: transparent; }
+
+.auth-logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 56px;
+  font-weight: 700;
+  letter-spacing: -2px;
+  text-align: center;
+  margin-bottom: 6px;
+  line-height: 1;
+  width: 100%;
+}
+.auth-logo span { color: var(--accent); }
+
+.auth-tagline {
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 40px;
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  width: 100%;
+}
+
+.auth-tabs {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.2s;
+  color: var(--muted);
+  user-select: none;
+}
+.auth-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.auth-form { width: 100%; }
+
+.form-group { margin-bottom: 14px; }
+
+.form-label {
+  display: block;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 13px 14px;
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+}
+.form-input::placeholder { color: var(--muted); }
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-select option { background: var(--surface2); }
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+.form-row .form-group { flex: 1; }
+
+.btn-main {
+  width: 100%;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 16px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, transform 0.1s;
+  margin-top: 6px;
+}
+.btn-main:hover { background: #e05a00; }
+.btn-main:active { transform: scale(0.98); }
+
+.btn-secondary {
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-secondary:hover { background: var(--surface2); }
+
+.error-msg {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.3);
+  color: #f87171;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 12px;
+  display: none;
+}
+.error-msg.show { display: block; }
+
+/* ===== HEADER ===== */
+.header {
+  padding: 14px 18px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+.logo span { color: var(--accent); }
+
+.header-right { display: flex; gap: 8px; align-items: center; }
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--surface2); }
+
+.post-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.post-btn:hover { background: #e05a00; }
+
+/* ===== TABS ===== */
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  flex-shrink: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 11px 0;
+  text-align: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.2s;
+  user-select: none;
+}
+.tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+/* ===== SEARCH ===== */
+.search-area {
+  padding: 12px 14px 8px;
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.search-wrap { flex: 1; position: relative; }
+.search-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px 10px 38px;
+  color: var(--text);
+  font-family: 'Barlow', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 15px;
+  pointer-events: none;
+}
+
+/* ===== PILLS ===== */
+.trade-pills {
+  padding: 0 14px 10px;
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex-shrink: 0;
+}
+.trade-pills::-webkit-scrollbar { display: none; }
+
+.pill {
+  white-space: nowrap;
+  padding: 5px 13px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.pill:not(.active):hover { border-color: var(--accent); color: var(--accent); }
+
+/* ===== STATS BAR ===== */
+.stats-bar {
+  padding: 4px 14px 10px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.avail-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: blink 2s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.stats-text {
+  font-size: 12px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.3px;
+}
+
+/* ===== CARDS ===== */
+.cards {
+  padding: 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.3s ease both;
+  box-shadow: var(--shadow-sm);
+}
+.card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.card-top {
+  padding: 13px 13px 10px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
+.avatar-wrap { position: relative; flex-shrink: 0; }
+
+.avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.status-dot {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
+.card-info { flex: 1; min-width: 0; }
+
+.name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 1px;
+}
+
+.card-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-trade {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.card-meta {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.stars { color: var(--accent2); font-size: 12px; letter-spacing: -1px; }
+.rating-num { color: var(--text); font-weight: 600; font-size: 12px; }
+
+.card-rate { text-align: right; flex-shrink: 0; }
+.rate-amt {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+.rate-unit {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.avail-tag {
+  padding: 2px 7px;
+  border-radius: 5px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 4px;
+  display: inline-block;
+}
+.avail-now { background: rgba(34,197,94,0.15); color: var(--green); }
+.avail-week { background: rgba(59,130,246,0.15); color: var(--blue); }
+.avail-full { background: rgba(239,68,68,0.12); color: #f87171; }
+
+.card-divider { height: 1px; background: var(--border); margin: 0 13px; }
+
+.card-bottom {
+  padding: 9px 13px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.skill-tags {
+  flex: 1;
+  display: flex;
+  gap: 5px;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+.skill-tag {
+  padding: 3px 8px;
+  background: var(--surface2);
+  border-radius: 5px;
+  font-size: 11px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.contact-btn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.contact-btn:hover { background: #e05a00; }
+
+.distance-stripe {
+  padding: 3px 13px 9px;
+  font-size: 11px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding: 8px 0 env(safe-area-inset-bottom, 10px);
+  padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+  z-index: 100;
+}
+
+.nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  padding: 3px 0;
+  user-select: none;
+}
+.nav-icon { font-size: 19px; line-height: 1; }
+.nav-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.nav-item.active .nav-label { color: var(--accent); }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 200;
+  display: flex;
+  align-items: flex-end;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+  backdrop-filter: blur(4px);
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px 20px 0 0;
+  width: 100%;
+  padding: 20px 18px 36px;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 90vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.modal::-webkit-scrollbar { display: none; }
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  margin: 0 auto 18px;
+}
+
+.modal-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+/* DETAIL MODAL */
+.modal-profile-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+.modal-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.modal-info { flex: 1; }
+.modal-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.modal-trade {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.modal-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 14px;
+  background: var(--surface2);
+  border-radius: 12px;
+}
+.modal-stat { text-align: center; flex: 1; }
+.modal-stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+}
+.modal-stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.modal-bio {
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
+
+.modal-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 9px;
+}
+
+.modal-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 20px;
+}
+.modal-skill {
+  padding: 5px 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.modal-actions { display: flex; gap: 8px; }
+.btn-outline {
+  flex: 1;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-outline:hover { background: var(--surface2); }
+
+.btn-accent {
+  flex: 2;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  padding: 13px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 0.3px;
+}
+.btn-accent:hover { background: #e05a00; }
+
+/* ===== PROFILE SCREEN ===== */
+.profile-header {
+  padding: 20px 18px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.profile-header h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.profile-hero {
+  padding: 24px 18px 20px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.profile-avatar-big {
+  width: 80px;
+  height: 80px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.profile-edit-badge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 22px;
+  height: 22px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+  border: 2px solid var(--bg);
+}
+
+.profile-details { flex: 1; }
+.profile-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
+  margin-bottom: 3px;
+}
+.profile-trade-tag {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 0 18px 18px;
+  flex-shrink: 0;
+}
+.p-stat {
+  flex: 1;
+  padding: 12px 8px;
+  text-align: center;
+  border-right: 1px solid var(--border);
+}
+.p-stat:last-child { border-right: none; }
+.p-stat-val {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+.p-stat-label {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+.profile-section {
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.profile-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.profile-bio {
+  font-size: 14px;
+  color: #aaa;
+  line-height: 1.6;
+}
+
+.profile-skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.profile-skill {
+  padding: 5px 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  color: var(--text);
+}
+.profile-info-row:last-child { border-bottom: none; }
+.profile-info-icon { font-size: 17px; width: 24px; text-align: center; }
+.profile-info-val { flex: 1; }
+.profile-info-label { font-size: 12px; color: var(--muted); font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; text-transform: uppercase; }
+
+.logout-btn {
+  margin: 18px;
+  width: calc(100% - 36px);
+  background: rgba(239,68,68,0.1);
+  color: #f87171;
+  border: 1px solid rgba(239,68,68,0.25);
+  padding: 14px;
+  border-radius: 12px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  letter-spacing: 0.3px;
+}
+.logout-btn:hover { background: rgba(239,68,68,0.2); }
+
+/* ===== JOB BOARD ===== */
+.section-header {
+  padding: 6px 14px 9px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.section-header::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.urgent-badge {
+  background: rgba(255,107,0,0.15);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 14px;
+  animation: fadeUp 0.3s ease both;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.job-card:hover { border-color: #444; }
+
+.job-top { display: flex; align-items: flex-start; gap: 11px; margin-bottom: 11px; }
+.job-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: var(--surface2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.job-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.job-company { font-size: 12px; color: var(--muted); }
+.job-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  padding-top: 10px;
+}
+.job-meta-item { display: flex; align-items: center; gap: 4px; }
+.job-budget { color: var(--accent); font-weight: 700; font-family: 'Barlow Condensed', sans-serif; font-size: 15px; }
+
+/* ===== MESSAGES ===== */
+.message-list { padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.message-item {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  cursor: pointer;
+  animation: fadeUp 0.3s ease both;
+}
+.message-avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #fff;
+  flex-shrink: 0;
+}
+.message-info { flex: 1; min-width: 0; }
+.message-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.message-preview { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.message-time { font-size: 11px; color: var(--muted); }
+.unread-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+/* ===== EDIT PROFILE MODAL ===== */
+.checkbox-group { display: flex; flex-wrap: wrap; gap: 7px; }
+.checkbox-pill {
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.checkbox-pill.selected { background: rgba(255,107,0,0.2); border-color: var(--accent); color: var(--accent); }
+
+/* ===== TOAST ===== */
+.toast {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--green);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 99px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  z-index: 500;
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.toast.error { background: var(--red); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--muted);
+}
+.empty-state .big-icon { font-size: 44px; margin-bottom: 14px; }
+.empty-state h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.empty-state p { font-size: 13px; line-height: 1.6; }
+
+/* ===== SECTION LABEL ===== */
+.sub-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px 8px;
+}
+.sub-section-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sub-section-line { flex: 1; height: 1px; background: var(--border); }
+
+/* ===== REGISTERED BADGE ===== */
+.you-badge {
+  background: rgba(255,107,0,0.2);
+  color: var(--accent);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* SKILL CHECKBOXES */
+.skill-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+/* ===== OTP ===== */
+.otp-sent-info {
+  background: rgba(34,197,94,0.1);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: var(--green);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  margin-bottom: 16px;
+  text-align: center;
+  line-height: 1.5;
+}
+.otp-boxes {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+.otp-box {
+  width: 46px;
+  height: 54px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.otp-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(255,107,0,0.15); }
+.otp-box.filled { border-color: var(--accent); background: rgba(255,107,0,0.05); }
+
+/* POST JOB */
+.form-half-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ==================== AUTH SCREEN ==================== -->
+  <div id="screen-auth" class="screen active">
+    <div style="display:flex;justify-content:flex-end;width:100%;margin-bottom:4px;">
+      <div onclick="toggleLang()" id="auth-lang-btn" style="
+        background:var(--surface);border:1px solid var(--border);border-radius:8px;
+        padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:600;
+        font-size:14px;cursor:pointer;color:var(--accent);letter-spacing:0.5px;
+        transition:background 0.15s;user-select:none;">हिं</div>
+    </div>
+    <div class="auth-logo">Contractor <span>Bhai</span></div>
+    <div class="auth-tagline" data-i18n="tagline">The Contractor Network</div>
+
+    <div class="auth-tabs">
+      <div class="auth-tab active" data-i18n="signIn" onclick="switchAuthTab('login')">Sign In</div>
+      <div class="auth-tab" data-i18n="register" onclick="switchAuthTab('register')">Register</div>
+    </div>
+
+    <!-- ===== LOGIN FORM ===== -->
+    <div id="auth-login" class="auth-form">
+      <div class="error-msg" id="login-error"></div>
+
+      <!-- STEP 1: Mobile number -->
+      <div id="login-step1">
+        <div class="form-group">
+          <label class="form-label" data-i18n="mobileNo">Mobile Number</label>
+          <div style="display:flex;gap:8px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 12px;font-size:15px;color:var(--muted);white-space:nowrap;font-weight:600;">🇮🇳 +91</div>
+            <input type="tel" class="form-input" id="login-mobile" data-i18n-placeholder="mobilePh" placeholder="98765 43210" maxlength="10" style="flex:1;" oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+        </div>
+        <button class="btn-main" data-i18n="sendOtp" onclick="loginSendOtp()">Send OTP →</button>
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted);">
+          <span data-i18n="demoHint2">Demo:</span>
+          <span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="demoLogin()"> 98765 43210</span>
+        </div>
+      </div>
+
+      <!-- STEP 2: OTP verify -->
+      <div id="login-step2" style="display:none;">
+        <div class="otp-sent-info" id="login-otp-info"></div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="enterOtp">Enter OTP</label>
+          <div class="otp-boxes" id="login-otp-boxes">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+          </div>
+        </div>
+        <button class="btn-main" data-i18n="verifyOtp" onclick="loginVerifyOtp()">Verify & Sign In →</button>
+        <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);">
+          <span data-i18n="didntGet">Didn't get OTP?</span>
+          <span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="resendOtp('login')" data-i18n="resend"> Resend</span>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <span style="color:var(--muted);font-size:12px;cursor:pointer;" onclick="backToStep1('login')" data-i18n="changeMobile">← Change number</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== REGISTER FORM ===== -->
+    <div id="auth-register" class="auth-form" style="display:none">
+      <div class="error-msg" id="register-error"></div>
+
+      <!-- STEP 1: Mobile -->
+      <div id="reg-step1">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="firstName">पहला नाम / First Name</label>
+            <input type="text" class="form-input" id="reg-first" data-i18n-placeholder="firstNamePh" placeholder="राम / Ram">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="lastName">अंतिम नाम / Last Name</label>
+            <input type="text" class="form-input" id="reg-last" data-i18n-placeholder="lastNamePh" placeholder="शर्मा / Sharma">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="mobileNo">Mobile Number</label>
+          <div style="display:flex;gap:8px;">
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 12px;font-size:15px;color:var(--muted);white-space:nowrap;font-weight:600;">🇮🇳 +91</div>
+            <input type="tel" class="form-input" id="reg-mobile" data-i18n-placeholder="mobilePh" placeholder="98765 43210" maxlength="10" style="flex:1;" oninput="this.value=this.value.replace(/\D/g,'')">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="primaryTrade">मुख्य काम / Primary Trade</label>
+          <select class="form-select" id="reg-trade">
+            <option value="" data-i18n="selectTrade">अपना काम चुनें / Select trade...</option>
+            <option value="electrical">⚡ Electrical — बिजली का काम</option>
+            <option value="plumbing">🔧 Plumbing — पाइप का काम</option>
+            <option value="carpentry">🪵 Carpentry — बढ़ई का काम</option>
+            <option value="masonry">🧱 Masonry — राजमिस्त्री</option>
+            <option value="painting">🎨 Painting — पेंटिंग</option>
+            <option value="hvac">❄️ AC / HVAC</option>
+            <option value="welding">🔥 Welding — वेल्डिंग</option>
+            <option value="general">🔨 General Labor — सामान्य मजदूरी</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" data-i18n="hourlyRate">दर (₹/घंटा)</label>
+            <input type="number" class="form-input" id="reg-rate" placeholder="350">
+          </div>
+          <div class="form-group">
+            <label class="form-label" data-i18n="yearsExp">अनुभव (वर्ष)</label>
+            <input type="number" class="form-input" id="reg-exp" placeholder="5">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="location">शहर / City</label>
+          <input type="text" class="form-input" id="reg-location" data-i18n-placeholder="locationPh" placeholder="मुंबई, महाराष्ट्र">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="bioLabel">अपने बारे में / About You</label>
+          <textarea class="form-textarea" id="reg-bio" data-i18n-placeholder="bioPh" placeholder="अपने अनुभव और काम के बारे में लिखें..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="availability">उपलब्धता / Availability</label>
+          <select class="form-select" id="reg-avail">
+            <option value="now" data-i18n="availNow">✅ अभी उपलब्ध / Available Now</option>
+            <option value="week" data-i18n="availWeek">📅 इस हफ्ते / This Week</option>
+            <option value="full" data-i18n="availFull">🔴 व्यस्त हूँ / Booked</option>
+          </select>
+        </div>
+        <button class="btn-main" data-i18n="sendOtp" onclick="registerSendOtp()">OTP भेजें / Send OTP →</button>
+      </div>
+
+      <!-- STEP 2: OTP -->
+      <div id="reg-step2" style="display:none;">
+        <div class="otp-sent-info" id="reg-otp-info"></div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="enterOtp">OTP डालें / Enter OTP</label>
+          <div class="otp-boxes" id="reg-otp-boxes">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+          </div>
+        </div>
+        <button class="btn-main" data-i18n="verifyOtp" onclick="registerVerifyOtp()">Verify & Create Account →</button>
+        <div style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted);">
+          <span data-i18n="didntGet">Didn't get OTP?</span>
+          <span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="resendOtp('reg')" data-i18n="resend"> Resend</span>
+        </div>
+        <div style="text-align:center;margin-top:8px;">
+          <span style="color:var(--muted);font-size:12px;cursor:pointer;" onclick="backToStep1('reg')" data-i18n="changeMobile">← Change number</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN SCREEN ==================== -->
+  <div id="screen-main" class="screen">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="logo">Contractor <span>Bhai</span></div>
+      <div class="header-right">
+        <div class="icon-btn" id="theme-toggle-btn" onclick="toggleTheme()" title="Toggle Theme">☀️</div>
+        <div class="icon-btn" id="lang-toggle-btn" onclick="toggleLang()" title="Toggle Language" style="font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:13px;letter-spacing:0.5px;">हिं</div>
+        <div class="icon-btn" onclick="openPostModal()">📋</div>
+        <button class="post-btn" data-i18n="postJob" onclick="openPostModal()">+ Post Job</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab active" data-i18n="tabFind" onclick="switchMainTab('find', this)">Find</div>
+      <div class="tab" data-i18n="tabJobs" onclick="switchMainTab('jobs', this)">Jobs</div>
+      <div class="tab" data-i18n="tabMessages" onclick="switchMainTab('messages', this)">Messages</div>
+    </div>
+
+    <!-- FIND TAB -->
+    <div id="main-find" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="search-area">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" id="search-input" data-i18n-placeholder="searchContractors" placeholder="Search trade, name, skill..." oninput="filterContractors()">
+        </div>
+      </div>
+      <div class="trade-pills" id="trade-pills">
+        <div class="pill active" data-i18n="allTrades" onclick="setTrade('all', this)">All Trades</div>
+        <div class="pill" onclick="setTrade('carpentry', this)">🪵 Carpentry</div>
+        <div class="pill" onclick="setTrade('electrical', this)">⚡ Electrical</div>
+        <div class="pill" onclick="setTrade('plumbing', this)">🔧 Plumbing</div>
+        <div class="pill" onclick="setTrade('masonry', this)">🧱 Masonry</div>
+        <div class="pill" onclick="setTrade('painting', this)">🎨 Painting</div>
+        <div class="pill" onclick="setTrade('hvac', this)">❄️ HVAC</div>
+        <div class="pill" onclick="setTrade('welding', this)">🔥 Welding</div>
+        <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
+      </div>
+      <div class="stats-bar">
+        <div class="avail-dot"></div>
+        <span class="stats-text" id="stats-text"></span>
+      </div>
+      <div class="scroll-area">
+        <div class="cards" id="contractor-cards" style="padding-bottom:20px;"></div>
+      </div>
+    </div>
+
+    <!-- JOBS TAB -->
+    <div id="main-jobs" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+      <div class="search-area">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" data-i18n-placeholder="searchJobs" placeholder="Search jobs..." oninput="filterJobs(this.value)">
+        </div>
+      </div>
+      <div class="scroll-area">
+        <div class="section-header" data-i18n="allJobs">All Jobs <span class="urgent-badge">🔥 Urgent marked</span></div>
+        <div class="cards" id="job-cards" style="padding-bottom:20px;"></div>
+      </div>
+    </div>
+
+    <!-- MESSAGES TAB -->
+    <div id="main-messages" style="display:none;flex:1;overflow:hidden;">
+      <div class="scroll-area" id="messages-area">
+        <div class="message-list" id="message-list"></div>
+      </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+      <div class="nav-item active" onclick="switchMainTab('find', null); setActiveNav(this)">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label" data-i18n="tabFind">Find</span>
+      </div>
+      <div class="nav-item" onclick="switchMainTab('jobs', null); setActiveNav(this)">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label" data-i18n="tabJobs">Jobs</span>
+      </div>
+      <div class="nav-item" onclick="switchMainTab('messages', null); setActiveNav(this)">
+        <span class="nav-icon">💬</span>
+        <span class="nav-label" data-i18n="tabMessages">Messages</span>
+      </div>
+      <div class="nav-item" onclick="showScreen('screen-profile')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label" data-i18n="tabProfile">Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PROFILE SCREEN ==================== -->
+  <div id="screen-profile" class="screen">
+    <div class="profile-header">
+      <button onclick="showScreen('screen-main')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">←</button>
+      <h2 data-i18n="myProfile">My Profile</h2>
+      <button class="icon-btn" onclick="openEditProfile()">✏️</button>
+    </div>
+
+    <div class="scroll-area" id="profile-scroll">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- CONTRACTOR DETAIL -->
+  <div class="modal-overlay" id="modal-detail" onclick="closeModal('modal-detail')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-profile-row">
+        <div class="modal-avatar" id="d-avatar"></div>
+        <div class="modal-info">
+          <div class="modal-name" id="d-name"></div>
+          <div class="modal-trade" id="d-trade"></div>
+          <div id="d-avail"></div>
+        </div>
+      </div>
+      <div class="modal-stats">
+        <div class="modal-stat"><div class="modal-stat-val" id="d-rating"></div><div class="modal-stat-label" data-i18n="statRating">Rating</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="d-jobs"></div><div class="modal-stat-label" data-i18n="statJobs">Jobs</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="d-rate"></div><div class="modal-stat-label" id="d-rate-unit" data-i18n="perHour">₹/hr</div></div>
+        <div class="modal-stat"><div class="modal-stat-val" id="d-exp"></div><div class="modal-stat-label" data-i18n="statExp">Yrs Exp</div></div>
+      </div>
+      <p class="modal-bio" id="d-bio"></p>
+      <div class="modal-section-title" data-i18n="specializations">Specializations</div>
+      <div class="modal-skills" id="d-skills"></div>
+      <div class="modal-actions">
+        <button class="btn-outline" data-i18n="save" onclick="saveContact()">💾 Save</button>
+        <button class="btn-accent" data-i18n="contactNowBtn" onclick="contactNow()">📞 Contact Now</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST WORK -->
+  <div class="modal-overlay" id="modal-post" onclick="closeModal('modal-post')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title" data-i18n="postJobTitle">Sub-Contract Work Post Karo</div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="jobTitle">Kaam ka Title</label>
+        <input type="text" class="form-input" id="pj-title" placeholder="e.g. Modular Furniture — 24 Flats">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="tradeRequired">Trade Chahiye</label>
+        <select class="form-select" id="pj-trade">
+          <option value="carpentry">🪵 Carpentry — बढ़ई</option>
+          <option value="electrical">⚡ Electrical — बिजली</option>
+          <option value="plumbing">🔧 Plumbing — पाइप</option>
+          <option value="masonry">🧱 Masonry — राजमिस्त्री</option>
+          <option value="painting">🎨 Painting — पेंटिंग</option>
+          <option value="hvac">❄️ AC / HVAC</option>
+          <option value="welding">🔥 Welding — वेल्डिंग</option>
+          <option value="general">🔨 General Sub-Work</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kaam ka Scope (Short mein)</label>
+        <input type="text" class="form-input" id="pj-scope" placeholder="e.g. 24 flats ka wardrobe + kitchen, material humara">
+      </div>
+      <div class="form-half-row">
+        <div class="form-group">
+          <label class="form-label">Rate Type</label>
+          <select class="form-select" id="pj-budget-type">
+            <option value="Per Sqft">Per Sqft</option>
+            <option value="Lumpsum">Lumpsum</option>
+            <option value="Per Unit">Per Unit</option>
+            <option value="Per Kg">Per Kg</option>
+            <option value="Percentage">Percentage</option>
+            <option value="Discuss Karenge">Discuss Karenge</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="budget">Budget / Rate</label>
+          <input type="text" class="form-input" id="pj-budget" placeholder="₹350/sqft ya Discuss">
+        </div>
+      </div>
+      <div class="form-half-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="location">City</label>
+          <input type="text" class="form-input" id="pj-loc" placeholder="Mumbai, Maharashtra">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="startDate">Shuruat Kab</label>
+          <input type="text" class="form-input" id="pj-start" placeholder="Turant / 15 April">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="description">Poori Jaankari</label>
+        <textarea class="form-textarea" id="pj-desc" placeholder="Project ki details — quantity, timeline, material kaun dega, team size ki zarurat..."></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" data-i18n="cancel" onclick="closeModal('modal-post')">Cancel</button>
+        <button class="btn-accent" data-i18n="postJobBtn" onclick="submitJob()">🚀 Post Karo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PROFILE -->
+  <div class="modal-overlay" id="modal-edit" onclick="closeModal('modal-edit')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title" data-i18n="editProfile">Edit Profile</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="firstName">First Name</label>
+          <input type="text" class="form-input" id="ep-first">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="lastName">Last Name</label>
+          <input type="text" class="form-input" id="ep-last">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="phone">Phone</label>
+        <input type="tel" class="form-input" id="ep-phone">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="primaryTrade">Primary Trade</label>
+        <select class="form-select" id="ep-trade">
+          <option value="electrical">⚡ Electrical</option>
+          <option value="plumbing">🔧 Plumbing</option>
+          <option value="framing">🪵 Framing</option>
+          <option value="hvac">❄️ HVAC</option>
+          <option value="concrete">🏗️ Concrete</option>
+          <option value="roofing">🏠 Roofing</option>
+          <option value="painting">🎨 Painting</option>
+          <option value="general">🔨 General Labor</option>
+        </select>
+      </div>
+      <div class="form-half-row">
+        <div class="form-group">
+          <label class="form-label" data-i18n="hourlyRate">Hourly Rate ($)</label>
+          <input type="number" class="form-input" id="ep-rate">
+        </div>
+        <div class="form-group">
+          <label class="form-label" data-i18n="yearsExp">Years Exp.</label>
+          <input type="number" class="form-input" id="ep-exp">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="location">Location</label>
+        <input type="text" class="form-input" id="ep-location">
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="bio">Bio</label>
+        <textarea class="form-textarea" id="ep-bio"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="availability">Availability</label>
+        <select class="form-select" id="ep-avail">
+          <option value="now" data-i18n="availNow">✅ Available Now</option>
+          <option value="week" data-i18n="availWeek">📅 Available This Week</option>
+          <option value="full" data-i18n="availFull">🔴 Booked Out</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="specializationsTap">Specializations (tap to toggle)</label>
+        <div class="skill-options" id="ep-skills"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" data-i18n="cancel" onclick="closeModal('modal-edit')">Cancel</button>
+        <button class="btn-accent" data-i18n="saveProfile" onclick="saveProfile()">Save Profile</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACT MODAL -->
+  <div class="modal-overlay" id="modal-contact" onclick="closeModal('modal-contact')">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="contact-title" data-i18n="contactContractor">Contact Contractor</div>
+      <div class="form-group">
+        <label class="form-label" data-i18n="message">Message</label>
+        <textarea class="form-textarea" id="contact-msg" data-i18n-placeholder="messagePh" placeholder="Hey, I have a job that might be a great fit for you. Let me know if you're interested..." style="min-height:120px;"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-outline" data-i18n="cancel" onclick="closeModal('modal-contact')">Cancel</button>
+        <button class="btn-accent" data-i18n="sendMessage" onclick="sendMessage()">📨 Send Message</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Floating WhatsApp Support Button -->
+  <a id="wa-fab" href="https://wa.me/918275407603?text=Namaste!%20Main%20Contractor%20Bhai%20app%20se%20contact%20kar%20raha%20hoon.%20" 
+     target="_blank" rel="noopener"
+     style="display:none;position:fixed;bottom:80px;right:16px;z-index:999;
+            width:52px;height:52px;border-radius:50%;background:#25D366;
+            align-items:center;justify-content:center;
+            box-shadow:0 4px 16px rgba(37,211,102,0.45);
+            text-decoration:none;transition:transform 0.2s;"
+     onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.465 2 2 6.463 2 12c0 1.99.579 3.842 1.58 5.405L2 22l4.752-1.558A9.939 9.939 0 0012.004 22C17.54 22 22 17.537 22 12S17.54 2 12.004 2zm0 18.18a8.168 8.168 0 01-4.355-1.252l-.313-.186-3.25 1.065 1.089-3.152-.203-.323A8.147 8.147 0 013.82 12c0-4.513 3.674-8.18 8.184-8.18 4.512 0 8.184 3.667 8.184 8.18 0 4.514-3.672 8.18-8.184 8.18z"/></svg>
+  </a>
+
+</div>
+
+<script>
+// ============================================================
+//  CONTRACTOR BHAI — Firebase-powered JS
+//  All data reads/writes go to Firestore.
+//  Auth uses Firebase Phone OTP (real SMS).
+// ============================================================
+
+// ---- Helpers to access Firebase (exposed from module) ----
+function FB() { return window._FB; }
+
+// ---- State ----
+let currentUser   = null;   // Firestore user doc data + uid
+let currentDetailContractor = null;
+let pendingConfirmation = null;   // Firebase SMS confirmation object
+let pendingRegData      = null;   // Registration form data waiting for OTP
+let selectedSkills = [];
+let activeTradeFilter = 'all';
+let currentLang   = 'en';
+let unsubJobs     = null;   // Firestore real-time listener
+
+// ---- Trade constants ----
+const TRADE_LABELS = {
+  electrical:'⚡ Electrical', plumbing:'🔧 Plumbing', carpentry:'🪵 Carpentry',
+  masonry:'🧱 Masonry', hvac:'❄️ AC/HVAC', painting:'🎨 Painting',
+  welding:'🔥 Welding', general:'🔨 General Labor'
+};
+const TRADE_COLORS = {
+  electrical:'#d97706', plumbing:'#0ea5e9', carpentry:'#c2410c',
+  masonry:'#16a34a', hvac:'#7c3aed', painting:'#be185d',
+  welding:'#ea580c', general:'#64748b'
+};
+const ALL_SKILLS = [
+  'Modular Furniture','Wardrobe','Modular Kitchen','False Ceiling','Wooden Flooring',
+  'Door Frame','Window Frame','Site Fitting','Sofa Frame','TV Unit',
+  'Complete Wiring','DB Setup','AC Point','Light-Power Points','Solar Panel',
+  'CPVC Pipe','Sanitation','Water Supply','Drainage','Society Plumbing',
+  'RCC Work','Brickwork','Plastering','Waterproofing','Tiling',
+  'Vitrified Tiles','Bathroom Tiles','Marble Work','Anti-skid','Granite',
+  'Interior Painting','Exterior Painting','Texture Work','Wood Polish','Wall Putty',
+  'Split AC','Duct AC','VRF System','Chiller','AMC',
+  'MS Fabrication','Structural Steel','Railing','Staircase','Gate Making',
+  'Turnkey Work','Project Management','Site Supervision'
+];
+
+// ============================================================
+//  SCREEN NAV
+// ============================================================
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'screen-profile') renderProfile();
+}
+
+// ============================================================
+//  AUTH — Firebase Phone OTP
+// ============================================================
+function switchAuthTab(tab) {
+  document.querySelectorAll('.auth-tab').forEach((el, i) => {
+    el.classList.toggle('active', (tab==='login'&&i===0)||(tab==='register'&&i===1));
+  });
+  document.getElementById('auth-login').style.display    = tab === 'login'    ? 'block' : 'none';
+  document.getElementById('auth-register').style.display = tab === 'register' ? 'block' : 'none';
+}
+
+function setupRecaptcha(containerId) {
+  const { auth, RecaptchaVerifier } = FB();
+  if (window.recaptchaVerifier) {
+    try { window.recaptchaVerifier.clear(); } catch(e) {}
+  }
+  window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+    size: 'invisible',
+    callback: () => {}
+  });
+  return window.recaptchaVerifier;
+}
+
+// ----- LOGIN -----
+function demoLogin() {
+  document.getElementById('login-mobile').value = '9876543210';
+  loginSendOtp();
+}
+
+async function loginSendOtp() {
+  const mob = document.getElementById('login-mobile').value.trim();
+  if (mob.length !== 10) { showError('login-error', t('errMobileLen')); return; }
+
+  hideError('login-error');
+  setLoading('login-step1', true);
+
+  try {
+    const appVerifier = setupRecaptcha('recaptcha-login');
+    const { signInWithPhoneNumber } = FB();
+    const confirmation = await signInWithPhoneNumber(FB().auth, '+91' + mob, appVerifier);
+    pendingConfirmation = confirmation;
+
+    document.getElementById('login-step1').style.display = 'none';
+    document.getElementById('login-step2').style.display = 'block';
+    document.getElementById('login-otp-info').innerHTML =
+      `📱 OTP <b>+91 ${mob.slice(0,5)} ${mob.slice(5)}</b> par bheja gaya!`;
+    clearOtpBoxes('login-otp-boxes');
+    setTimeout(() => document.querySelector('#login-otp-boxes .otp-box').focus(), 100);
+  } catch(err) {
+    showError('login-error', 'OTP bhejne mein problem aayi. Phone number check karein. (' + err.code + ')');
+  } finally {
+    setLoading('login-step1', false);
+  }
+}
+
+async function loginVerifyOtp() {
+  const otp = getOtpValue('login-otp-boxes');
+  if (otp.length < 6) { showError('login-error', t('errEnterOtp')); return; }
+
+  setLoading('login-step2', true);
+  try {
+    const result = await pendingConfirmation.confirm(otp);
+    const uid = result.user.uid;
+    const mob = result.user.phoneNumber.replace('+91', '');
+
+    // Check if user profile exists in Firestore
+    const { db, doc, getDoc } = FB();
+    const userRef = doc(db, 'users', uid);
+    const snap = await getDoc(userRef);
+
+    if (snap.exists()) {
+      currentUser = { uid, ...snap.data() };
+      await afterLogin();
+    } else {
+      // New phone number — check if demo user mobile matches
+      const demoRef = doc(db, 'users', 'demo_' + mob);
+      const demoSnap = await getDoc(demoRef);
+      if (demoSnap.exists()) {
+        // Migrate demo profile to real UID
+        const data = { ...demoSnap.data(), uid, mobile: mob };
+        await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js").then(m =>
+          m.setDoc(userRef, data)
+        );
+        currentUser = { uid, ...data };
+        await afterLogin();
+      } else {
+        // Truly new user — send to register tab with mobile pre-filled
+        hideError('login-error');
+        document.getElementById('login-step1').style.display = 'block';
+        document.getElementById('login-step2').style.display = 'none';
+        switchAuthTab('register');
+        document.getElementById('reg-mobile').value = mob;
+        showToast('Pehle register karein — aapka mobile number ready hai!');
+      }
+    }
+  } catch(err) {
+    showError('login-error', 'OTP galat hai ya expire ho gaya. (' + (err.code || err.message) + ')');
+    clearOtpBoxes('login-otp-boxes');
+  } finally {
+    setLoading('login-step2', false);
+  }
+}
+
+// ----- REGISTER -----
+async function registerSendOtp() {
+  const first = document.getElementById('reg-first').value.trim();
+  const last  = document.getElementById('reg-last').value.trim();
+  const mob   = document.getElementById('reg-mobile').value.trim();
+  const trade = document.getElementById('reg-trade').value;
+  const rate  = parseInt(document.getElementById('reg-rate').value) || null;
+  const exp   = parseInt(document.getElementById('reg-exp').value) || 1;
+  const loc   = document.getElementById('reg-location').value.trim();
+  const bio   = document.getElementById('reg-bio').value.trim();
+  const avail = document.getElementById('reg-avail').value;
+
+  if (!first || !last) { showError('register-error', t('errName')); return; }
+  if (mob.length !== 10) { showError('register-error', t('errMobileLen')); return; }
+  if (!trade) { showError('register-error', t('errTrade')); return; }
+
+  pendingRegData = { first, last, mob, trade, rate, exp, loc, bio, avail };
+  hideError('register-error');
+  setLoading('reg-step1', true);
+
+  try {
+    const appVerifier = setupRecaptcha('recaptcha-register');
+    const { signInWithPhoneNumber } = FB();
+    const confirmation = await signInWithPhoneNumber(FB().auth, '+91' + mob, appVerifier);
+    pendingConfirmation = confirmation;
+
+    document.getElementById('reg-step1').style.display = 'none';
+    document.getElementById('reg-step2').style.display = 'block';
+    document.getElementById('reg-otp-info').innerHTML =
+      `📱 OTP <b>+91 ${mob.slice(0,5)} ${mob.slice(5)}</b> par bheja gaya!`;
+    clearOtpBoxes('reg-otp-boxes');
+    setTimeout(() => document.querySelector('#reg-otp-boxes .otp-box').focus(), 100);
+  } catch(err) {
+    showError('register-error', 'OTP bhejne mein problem. (' + err.code + ')');
+  } finally {
+    setLoading('reg-step1', false);
+  }
+}
+
+async function registerVerifyOtp() {
+  const otp = getOtpValue('reg-otp-boxes');
+  if (otp.length < 6) { showError('register-error', t('errEnterOtp')); return; }
+
+  setLoading('reg-step2', true);
+  try {
+    const result = await pendingConfirmation.confirm(otp);
+    const uid = result.user.uid;
+    const d   = pendingRegData;
+    const initials = (d.first[0] + d.last[0]).toUpperCase();
+
+    const newUser = {
+      uid, firstName: d.first, lastName: d.last, mobile: d.mob,
+      trade: d.trade, rate: d.rate, rateType: d.rate ? 'sqft' : 'negotiable',
+      exp: d.exp, location: d.loc, bio: d.bio, avail: d.avail,
+      availFrom: d.avail === 'now' ? 'Abhi se' : d.avail === 'week' ? 'Is hafte' : 'Baad mein',
+      rating: 0, jobsDone: 0, skills: [], workTypes: ['Negotiable'],
+      color: TRADE_COLORS[d.trade] || '#ff6b00',
+      verified: false, isContractor: true, initials,
+      createdAt: FB().serverTimestamp(),
+    };
+
+    const { db, doc, setDoc } = FB();
+    await setDoc(doc(db, 'users', uid), newUser);
+    currentUser = { ...newUser };
+    pendingConfirmation = null; pendingRegData = null;
+    hideError('register-error');
+    await afterLogin();
+    showToast('🎉 ' + t('welcomeMsg') + ', ' + d.first + '!');
+  } catch(err) {
+    showError('register-error', 'OTP galat. (' + (err.code || err.message) + ')');
+    clearOtpBoxes('reg-otp-boxes');
+  } finally {
+    setLoading('reg-step2', false);
+  }
+}
+
+function resendOtp(prefix) {
+  if (prefix === 'login') {
+    document.getElementById('login-step1').style.display = 'block';
+    document.getElementById('login-step2').style.display = 'none';
+    showToast('Mobile number dobara enter karein aur OTP bhejein.');
+  } else {
+    document.getElementById('reg-step1').style.display = 'block';
+    document.getElementById('reg-step2').style.display = 'none';
+    showToast('Mobile number dobara enter karein aur OTP bhejein.');
+  }
+}
+
+function backToStep1(prefix) {
+  if (prefix === 'login') {
+    document.getElementById('login-step1').style.display = 'block';
+    document.getElementById('login-step2').style.display = 'none';
+  } else {
+    document.getElementById('reg-step1').style.display = 'block';
+    document.getElementById('reg-step2').style.display = 'none';
+  }
+  pendingConfirmation = null;
+}
+
+async function afterLogin() {
+  if (!currentUser.initials) {
+    currentUser.initials = (currentUser.firstName[0] + currentUser.lastName[0]).toUpperCase();
+  }
+  hideError('login-error'); hideError('register-error');
+  ['login-step1','reg-step1'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='block'; });
+  ['login-step2','reg-step2'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display='none'; });
+  document.getElementById('wa-fab').style.display = 'flex';
+  await loadContractors();
+  subscribeJobs();
+  showScreen('screen-main');
+}
+
+async function logout() {
+  await FB().signOut(FB().auth);
+  currentUser = null;
+  if (unsubJobs) { unsubJobs(); unsubJobs = null; }
+  document.getElementById('wa-fab').style.display = 'none';
+  showScreen('screen-auth');
+  showToast('👋 ' + t('signOut'));
+}
+
+// ============================================================
+//  CONTRACTORS — Load from Firestore
+// ============================================================
+let allContractors = [];
+
+async function loadContractors() {
+  const { db, collection, getDocs } = FB();
+  const snap = await getDocs(collection(db, 'users'));
+  allContractors = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderContractors();
+}
+
+function filterContractors(q) {
+  const query = (q || '').toLowerCase().trim();
+  let list = allContractors.filter(c => c.isContractor);
+  if (activeTradeFilter !== 'all') list = list.filter(c => c.trade === activeTradeFilter);
+  if (query) list = list.filter(c =>
+    `${c.firstName} ${c.lastName} ${c.trade} ${c.location} ${(c.skills||[]).join(' ')}`.toLowerCase().includes(query)
+  );
+  renderContractors(list);
+}
+
+function setTrade(trade, el) {
+  activeTradeFilter = trade;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterContractors(document.getElementById('search-input')?.value || '');
+}
+
+function rateDisplay(c) {
+  if (!c.rate) return t('rateNegotiable');
+  return '₹' + c.rate;
+}
+function rateUnit(c) {
+  if (!c.rate) return '';
+  if (c.rateType === 'sqft') return '/sqft';
+  if (c.rateType === 'kg')   return '/kg';
+  return '';
+}
+
+function renderContractors(list) {
+  const container = document.getElementById('contractor-cards');
+  const source = list !== undefined ? list : allContractors.filter(c => c.isContractor);
+  if (source.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="big-icon">🔍</div><h3>${t('noResults')}</h3><p>${t('noResultsPh')}</p></div>`;
+    return;
+  }
+  container.innerHTML = source.map((c, i) => {
+    const isMe = currentUser && c.uid === currentUser.uid;
+    const initials = c.initials || (c.firstName[0]+c.lastName[0]).toUpperCase();
+    const avClass = c.avail === 'now' ? 'avail-now' : c.avail === 'week' ? 'avail-week' : 'avail-full';
+    const avTxt   = availText(c.avail);
+    const stars   = '★'.repeat(Math.floor(c.rating||0)) + '☆'.repeat(5 - Math.floor(c.rating||0));
+    const skills  = c.skills || [];
+    const dotColor = c.avail === 'now' ? '#22c55e' : c.avail === 'week' ? '#f59e0b' : '#ef4444';
+    return `
+    <div class="contractor-card" style="animation-delay:${i*0.07}s" onclick="openDetail('${c.id}')">
+      <div class="card-main">
+        <div class="avatar-wrap">
+          <div class="avatar" style="background:${c.color||'#ff6b00'}">${initials}</div>
+          <div class="status-dot" style="background:${dotColor}"></div>
+        </div>
+        <div class="card-info">
+          <div class="name-row">
+            <span class="card-name">${c.firstName} ${c.lastName}</span>
+            ${c.verified ? '<span title="Verified" style="font-size:12px">✅</span>' : ''}
+            ${isMe ? `<span class="you-badge">${t('youBadge')}</span>` : ''}
+          </div>
+          <div class="card-trade" style="color:${c.color||'#ff6b00'}">${TRADE_LABELS[c.trade]||c.trade}</div>
+          <div class="card-meta">
+            <span class="meta-item">${c.rating > 0 ? `<span class="stars">${stars}</span><span class="rating-num"> ${c.rating}</span>` : `<span style="color:var(--muted);font-size:11px">${t('newBadge')}</span>`}</span>
+            <span class="meta-item">🔨 ${c.jobsDone||0} ${t('jobsDone')}</span>
+          </div>
+        </div>
+        <div class="card-rate">
+          <div class="rate-amt">${rateDisplay(c)}</div>
+          <div class="rate-unit">${rateUnit(c)}</div>
+          <div class="avail-tag ${avClass}">${avTxt}</div>
+        </div>
+      </div>
+      ${c.availFrom ? `<div class="distance-stripe">📅 ${t('availFrom')}: <strong>${c.availFrom}</strong> &nbsp;·&nbsp; 📍 ${c.location||''}</div>` : (c.location ? `<div class="distance-stripe">📍 ${c.location}</div>` : '')}
+      <div class="card-divider"></div>
+      <div class="card-bottom">
+        <div class="skill-tags">
+          ${(c.workTypes||[]).map(w => `<span class="skill-tag" style="background:rgba(255,107,0,0.1);color:var(--accent);border-color:rgba(255,107,0,0.2);">${w}</span>`).join('')}
+          ${skills.slice(0,2).map(s => `<span class="skill-tag">${s}</span>`).join('')}
+        </div>
+        ${!isMe ? `<button class="contact-btn" onclick="event.stopPropagation();quickContact('${c.id}')">${t('discuss')}</button>` : `<button class="contact-btn" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);" onclick="event.stopPropagation();showScreen('screen-profile')">${t('editProfile')}</button>`}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openDetail(id) {
+  const c = allContractors.find(u => u.id === id);
+  if (!c) return;
+  currentDetailContractor = c;
+  const initials = c.initials || (c.firstName[0]+c.lastName[0]).toUpperCase();
+  const avClass = c.avail === 'now' ? 'avail-now' : c.avail === 'week' ? 'avail-week' : 'avail-full';
+
+  document.getElementById('d-avatar').style.background = c.color || '#ff6b00';
+  document.getElementById('d-avatar').textContent = initials;
+  document.getElementById('d-name').textContent = `${c.firstName} ${c.lastName} ${c.verified ? '✅' : ''}`;
+  document.getElementById('d-trade').textContent = TRADE_LABELS[c.trade] || c.trade;
+  document.getElementById('d-trade').style.color = c.color || '#ff6b00';
+  document.getElementById('d-avail').innerHTML = `<span class="avail-tag ${avClass}">${availText(c.avail)}</span>`;
+  document.getElementById('d-rating').textContent = c.rating > 0 ? c.rating : 'New';
+  document.getElementById('d-jobs').textContent = c.jobsDone || 0;
+  document.getElementById('d-rate').textContent = c.rate ? '₹'+c.rate : t('rateNegotiable');
+  const rateUnitEl = document.getElementById('d-rate-unit');
+  if (rateUnitEl) rateUnitEl.textContent = c.rate ? rateUnit(c) : '';
+  document.getElementById('d-exp').textContent = c.exp + 'yr';
+  document.getElementById('d-bio').textContent = c.bio || t('emptyBio');
+  const workTypeTags = (c.workTypes||[]).map(w => `<span class="modal-skill" style="background:rgba(255,107,0,0.12);color:var(--accent);">${w}</span>`).join('');
+  const skillTags = (c.skills||[]).map(s => `<span class="modal-skill">${s}</span>`).join('');
+  document.getElementById('d-skills').innerHTML = workTypeTags + skillTags || `<span style="color:var(--muted);font-size:13px">${t('emptySkills')}</span>`;
+  openModal('modal-detail');
+}
+
+function quickContact(id) {
+  currentDetailContractor = allContractors.find(u => u.id === id);
+  contactNow();
+}
+
+function saveContact() {
+  closeModal('modal-detail');
+  showToast(`💾 ${currentDetailContractor.firstName} ${t('saved')}`);
+}
+
+function contactNow() {
+  closeModal('modal-detail');
+  const c = currentDetailContractor;
+  document.getElementById('contact-title').textContent = `${t('contactTitle')} — ${c.firstName} ${c.lastName}`;
+  document.getElementById('contact-msg').value = '';
+  openModal('modal-contact');
+}
+
+async function sendMessage() {
+  const msg = document.getElementById('contact-msg').value.trim();
+  if (!msg) { showToast('Pehle message likhein.'); return; }
+
+  const c   = currentDetailContractor;
+  const me  = currentUser;
+  const { db, collection, addDoc, serverTimestamp } = FB();
+
+  await addDoc(collection(db, 'messages'), {
+    from:       me.uid,
+    fromName:   `${me.firstName} ${me.lastName}`,
+    to:         c.uid || c.id,
+    toName:     `${c.firstName} ${c.lastName}`,
+    toColor:    c.color,
+    toInitials: c.initials || (c.firstName[0]+c.lastName[0]).toUpperCase(),
+    preview:    msg.substring(0, 100),
+    fullMsg:    msg,
+    timestamp:  serverTimestamp(),
+    read:       false,
+  });
+
+  closeModal('modal-contact');
+  showToast(`📨 ${t('msgSent')} ${c.firstName}!`);
+  loadMessages();
+}
+
+// ============================================================
+//  JOBS — Firestore real-time listener
+// ============================================================
+let allJobs = [];
+
+function subscribeJobs() {
+  if (unsubJobs) unsubJobs();
+  const { db, collection, query, orderBy, onSnapshot } = FB();
+  const q = query(collection(db, 'jobs'), orderBy('createdAt', 'desc'));
+  unsubJobs = onSnapshot(q, snap => {
+    allJobs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderJobs();
+  });
+}
+
+function filterJobs(queryStr) {
+  const q = (queryStr || '').toLowerCase().trim();
+  const filtered = q
+    ? allJobs.filter(j =>
+        (j.title||'').toLowerCase().includes(q) ||
+        (j.trade||'').toLowerCase().includes(q) ||
+        (j.location||'').toLowerCase().includes(q) ||
+        (j.company||'').toLowerCase().includes(q)
+      )
+    : allJobs;
+  renderJobs(filtered);
+}
+
+function renderJobs(list) {
+  const container = document.getElementById('job-cards');
+  const all = list !== undefined ? list : allJobs;
+  if (all.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="big-icon">📋</div><h3>${t('noResults')}</h3><p>Koi kaam post nahi hua abhi.</p></div>`;
+    return;
+  }
+  container.innerHTML = all.map((j, i) => `
+    <div class="job-card" style="animation-delay:${i*0.07}s" onclick="openJobDetail('${j.id}')">
+      <div class="job-top">
+        <div class="job-icon">${j.icon || '📋'}</div>
+        <div style="flex:1;min-width:0;">
+          <div class="job-title">${j.title} ${j.urgent ? '<span style="color:var(--accent)">🔥</span>' : ''}</div>
+          <div class="job-company">${j.company || 'Posted by contractor'}</div>
+        </div>
+      </div>
+      ${j.scope ? `<div style="font-size:13px;color:var(--muted);margin:8px 0 4px;line-height:1.4;">${j.scope}</div>` : ''}
+      <div style="height:1px;background:var(--border);margin:8px 0;"></div>
+      <div class="job-meta">
+        <span class="job-meta-item">📍 ${j.location || 'India'}</span>
+        <span class="job-meta-item">🗓️ ${j.start || 'TBD'}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;">
+        <div>
+          ${j.budgetType ? `<span style="font-size:11px;background:rgba(255,107,0,0.1);color:var(--accent);padding:2px 8px;border-radius:4px;font-weight:600;">${j.budgetType}</span>` : ''}
+          <span class="job-budget" style="margin-left:6px;">${j.budget || 'Discuss Karenge'}</span>
+        </div>
+        <button class="contact-btn" style="padding:6px 14px;font-size:12px;" onclick="event.stopPropagation();expressInterest('${j.id}')">${t('expressInterest')}</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function openPostModal() { openModal('modal-post'); }
+
+function expressInterest(jobId) {
+  const job = allJobs.find(j => j.id === jobId);
+  if (!job) return;
+  const me = currentUser;
+  const poster = allContractors.find(u => u.uid === job.postedBy) || { firstName: job.company, lastName: '', uid: job.postedBy };
+  currentDetailContractor = poster;
+  document.getElementById('contact-title').textContent = `${t('interestedIn')}: ${job.title}`;
+  document.getElementById('contact-msg').value = `Namaste! Aapka "${job.title}" ka kaam dekha. Main interested hoon. Meri trade: ${TRADE_LABELS[me.trade]||me.trade}, ${me.exp} saal ka anubhav. Discuss kar sakte hain kya?`;
+  openModal('modal-contact');
+}
+
+function openJobDetail(jobId) {
+  expressInterest(jobId);
+}
+
+async function submitJob() {
+  const title      = document.getElementById('pj-title').value.trim();
+  const trade      = document.getElementById('pj-trade').value;
+  const scope      = document.getElementById('pj-scope').value.trim();
+  const budgetType = document.getElementById('pj-budget-type').value;
+  const budget     = document.getElementById('pj-budget').value.trim();
+  const start      = document.getElementById('pj-start').value.trim();
+  const loc        = document.getElementById('pj-loc').value.trim();
+  const desc       = document.getElementById('pj-desc').value.trim();
+
+  if (!title) { showToast('Kaam ka title zaroori hai.'); return; }
+
+  const icons = { electrical:'⚡', plumbing:'🔧', carpentry:'🪵', masonry:'🧱', painting:'🎨', hvac:'❄️', welding:'🔥', general:'🔨' };
+  const me = currentUser;
+
+  const { db, collection, addDoc, serverTimestamp } = FB();
+  await addDoc(collection(db, 'jobs'), {
+    title, trade, scope, budgetType, budget, start, location: loc, desc,
+    icon: icons[trade] || '📋',
+    company: `${me.firstName} ${me.lastName}`,
+    postedBy: me.uid,
+    urgent: false,
+    createdAt: serverTimestamp(),
+  });
+
+  closeModal('modal-post');
+  showToast(t('jobPosted'));
+  ['pj-title','pj-scope','pj-budget','pj-start','pj-loc','pj-desc'].forEach(id => document.getElementById(id).value = '');
+  switchMainTab('jobs', null);
+}
+
+// ============================================================
+//  MESSAGES — Firestore
+// ============================================================
+async function loadMessages() {
+  const container = document.getElementById('message-list');
+  if (!currentUser) return;
+  const { db, collection, query, where, orderBy, getDocs } = FB();
+  const q = query(
+    collection(db, 'messages'),
+    where('from', '==', currentUser.uid),
+    orderBy('timestamp', 'desc')
+  );
+  const snap = await getDocs(q);
+  const msgs = snap.docs.map(d => d.data());
+  if (msgs.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="big-icon">💬</div><h3>${t('noMessages')}</h3><p>${t('noMessagesPh')}</p></div>`;
+    return;
+  }
+  container.innerHTML = msgs.map(m => `
+    <div class="message-card">
+      <div class="msg-avatar" style="background:${m.toColor||'#ff6b00'}">${m.toInitials||'?'}</div>
+      <div class="msg-content">
+        <div class="msg-name">${m.toName}</div>
+        <div class="msg-preview">${m.preview}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderMessages() { loadMessages(); }
+
+// ============================================================
+//  PROFILE
+// ============================================================
+function renderProfile() {
+  const u = currentUser;
+  if (!u) return;
+  const initials = u.initials || (u.firstName[0]+u.lastName[0]).toUpperCase();
+  selectedSkills = [...(u.skills || [])];
+
+  document.getElementById('profile-scroll').innerHTML = `
+    <div class="profile-hero">
+      <div class="profile-avatar" style="background:${u.color||'#ff6b00'}">${initials}</div>
+      <div class="profile-name">${u.firstName} ${u.lastName} ${u.verified ? '✅' : ''}</div>
+      <div class="profile-trade" style="color:${u.color||'#ff6b00'}">${TRADE_LABELS[u.trade]||u.trade||'—'}</div>
+      <div class="profile-stats">
+        <div class="p-stat"><div class="p-stat-val">⭐ ${u.rating||'New'}</div><div class="p-stat-label">${t('statRating')}</div></div>
+        <div class="p-stat"><div class="p-stat-val">🔨 ${u.jobsDone||0}</div><div class="p-stat-label">${t('statJobs')}</div></div>
+        <div class="p-stat"><div class="p-stat-val">${u.rate ? '₹'+u.rate : '—'}</div><div class="p-stat-label">${u.rateType||t('perHour')}</div></div>
+        <div class="p-stat"><div class="p-stat-val">📅 ${u.exp||0}</div><div class="p-stat-label">${t('statExp')}</div></div>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">${t('availability')}</div>
+      <div class="avail-tag ${u.avail==='now'?'avail-now':u.avail==='week'?'avail-week':'avail-full'}" style="font-size:14px;padding:6px 14px;">
+        ${availText(u.avail)}
+      </div>
+      ${u.availFrom ? `<div style="font-size:13px;color:var(--muted);margin-top:8px;">📅 ${t('availFrom')}: <strong>${u.availFrom}</strong></div>` : ''}
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">${t('contactInfo')}</div>
+      <div class="profile-info-row">
+        <div class="profile-info-icon">📱</div>
+        <div class="profile-info-val">
+          <div class="profile-info-label">${t('mobileNo')}</div>
+          +91 ${u.mobile ? u.mobile.slice(0,5)+' '+u.mobile.slice(5) : '—'}
+        </div>
+      </div>
+      <div class="profile-info-row">
+        <div class="profile-info-icon">📍</div>
+        <div class="profile-info-val">
+          <div class="profile-info-label">${t('location')}</div>
+          ${u.location || '—'}
+        </div>
+      </div>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">${t('bioLabel')}</div>
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;">${u.bio || t('emptyBio')}</p>
+    </div>
+    <div class="profile-section">
+      <div class="profile-section-title">${t('specializations')}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+        ${(u.workTypes||[]).map(w => `<span class="skill-tag" style="background:rgba(255,107,0,0.1);color:var(--accent);">${w}</span>`).join('')}
+        ${(u.skills||[]).map(s => `<span class="skill-tag">${s}</span>`).join('')}
+      </div>
+    </div>
+    <button class="btn-main" style="margin:16px 0 8px;" onclick="openEditModal()">${t('editProfile')}</button>
+
+    <div class="profile-section" style="margin-top:8px;">
+      <div class="profile-section-title">💬 Support & Feedback</div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;line-height:1.5;">
+        Koi suggestion, problem ya feedback? Seedha WhatsApp karein — hum personally jawab denge.
+      </p>
+      <a href="https://wa.me/918275407603?text=Namaste!%20Main%20Contractor%20Bhai%20app%20se%20contact%20kar%20raha%20hoon.%20"
+         target="_blank" rel="noopener"
+         style="display:flex;align-items:center;gap:12px;background:#25D366;color:#fff;border-radius:12px;padding:14px 18px;text-decoration:none;font-weight:600;font-size:15px;margin-bottom:10px;box-shadow:0 2px 8px rgba(37,211,102,0.3);">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.004 2C6.465 2 2 6.463 2 12c0 1.99.579 3.842 1.58 5.405L2 22l4.752-1.558A9.939 9.939 0 0012.004 22C17.54 22 22 17.537 22 12S17.54 2 12.004 2zm0 18.18a8.168 8.168 0 01-4.355-1.252l-.313-.186-3.25 1.065 1.089-3.152-.203-.323A8.147 8.147 0 013.82 12c0-4.513 3.674-8.18 8.184-8.18 4.512 0 8.184 3.667 8.184 8.18 0 4.514-3.672 8.18-8.184 8.18z"/></svg>
+        WhatsApp: +91 82754 07603
+      </a>
+      <a href="tel:+918275407603"
+         style="display:flex;align-items:center;gap:12px;background:var(--surface2);color:var(--text);border-radius:12px;padding:14px 18px;text-decoration:none;font-weight:600;font-size:15px;border:1px solid var(--border);">
+        📞 Call: +91 82754 07603
+      </a>
+      <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:10px;">
+        Contractor Bhai v1.0 · Made in India 🇮🇳
+      </p>
+    </div>
+
+    <button class="logout-btn" onclick="logout()">${t('signOut')}</button>
+  `;
+}
+
+function openEditModal() {
+  const u = currentUser;
+  document.getElementById('ep-first').value    = u.firstName || '';
+  document.getElementById('ep-last').value     = u.lastName  || '';
+  document.getElementById('ep-trade').value    = u.trade     || '';
+  document.getElementById('ep-rate').value     = u.rate      || '';
+  document.getElementById('ep-exp').value      = u.exp       || '';
+  document.getElementById('ep-location').value = u.location  || '';
+  document.getElementById('ep-bio').value      = u.bio       || '';
+  document.getElementById('ep-avail').value    = u.avail     || 'now';
+  selectedSkills = [...(u.skills || [])];
+  renderSkillCheckboxes();
+  openModal('modal-edit');
+}
+
+async function saveProfile() {
+  const newFirst = document.getElementById('ep-first').value.trim();
+  const newLast  = document.getElementById('ep-last').value.trim();
+  if (!newFirst || !newLast) { showToast('Name zaroori hai.'); return; }
+
+  const updates = {
+    firstName: newFirst, lastName: newLast,
+    trade:     document.getElementById('ep-trade').value,
+    rate:      parseInt(document.getElementById('ep-rate').value) || null,
+    exp:       parseInt(document.getElementById('ep-exp').value) || currentUser.exp,
+    location:  document.getElementById('ep-location').value.trim(),
+    bio:       document.getElementById('ep-bio').value.trim(),
+    avail:     document.getElementById('ep-avail').value,
+    skills:    [...selectedSkills],
+    initials:  (newFirst[0]+newLast[0]).toUpperCase(),
+    color:     TRADE_COLORS[document.getElementById('ep-trade').value] || currentUser.color,
+  };
+
+  const { db, doc, updateDoc } = FB();
+  await updateDoc(doc(db, 'users', currentUser.uid), updates);
+  Object.assign(currentUser, updates);
+
+  closeModal('modal-edit');
+  renderProfile();
+  await loadContractors();
+  showToast(t('profileUpdated'));
+}
+
+// ============================================================
+//  SKILL CHECKBOXES
+// ============================================================
+function renderSkillCheckboxes() {
+  const container = document.getElementById('skill-checkboxes');
+  if (!container) return;
+  container.innerHTML = ALL_SKILLS.map(s => `
+    <label class="skill-check ${selectedSkills.includes(s) ? 'selected' : ''}" onclick="toggleSkill('${s}', this)">
+      ${s}
+    </label>`).join('');
+}
+
+function toggleSkill(skill, el) {
+  if (selectedSkills.includes(skill)) {
+    selectedSkills = selectedSkills.filter(s => s !== skill);
+    el.classList.remove('selected');
+  } else if (selectedSkills.length < 10) {
+    selectedSkills.push(skill);
+    el.classList.add('selected');
+  }
+}
+
+// ============================================================
+//  UI HELPERS
+// ============================================================
+function switchMainTab(tab, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('tab-find').style.display = tab === 'find' ? 'block' : 'none';
+  document.getElementById('tab-jobs').style.display = tab === 'jobs' ? 'block' : 'none';
+  document.getElementById('tab-msg').style.display  = tab === 'msg'  ? 'block' : 'none';
+  if (tab === 'msg') loadMessages();
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, isError = false) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.toggle('error', isError);
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+function showError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = msg; el.classList.add('show'); }
+}
+function hideError(id) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = ''; el.classList.remove('show'); }
+}
+
+function setLoading(containerId, on) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  const btn = el.querySelector('.btn-main');
+  if (btn) { btn.disabled = on; btn.style.opacity = on ? '0.6' : '1'; }
+}
+
+function availText(avail, short) {
+  const map = { now: short ? t('availNowShort') : t('availNow'), week: short ? t('availWeekShort') : t('availWeek'), full: short ? t('availFullShort') : t('availFull') };
+  return map[avail] || avail;
+}
+
+function otpNext(el, boxesId) {
+  el.value = el.value.replace(/\D/g, '');
+  if (el.value) {
+    el.classList.add('filled');
+    const boxes = document.getElementById(boxesId).querySelectorAll('.otp-box');
+    const idx = Array.from(boxes).indexOf(el);
+    if (idx < boxes.length - 1) boxes[idx+1].focus();
+  } else { el.classList.remove('filled'); }
+}
+
+function otpBack(e, el) {
+  if (e.key === 'Backspace' && !el.value) {
+    const prev = el.previousElementSibling;
+    if (prev && prev.classList.contains('otp-box')) { prev.focus(); prev.value = ''; prev.classList.remove('filled'); }
+  }
+}
+
+function getOtpValue(boxesId) {
+  return Array.from(document.getElementById(boxesId).querySelectorAll('.otp-box')).map(b => b.value).join('');
+}
+
+function clearOtpBoxes(boxesId) {
+  document.getElementById(boxesId).querySelectorAll('.otp-box').forEach(b => { b.value = ''; b.classList.remove('filled'); });
+}
+
+// ============================================================
+//  LANGUAGE / i18n
+// ============================================================
+const TRANSLATIONS = {
+  en: {
+    signIn:'Sign In', register:'Register', tagline:'The Contractor Network',
+    mobileNo:'Mobile Number', mobilePh:'98765 43210',
+    sendOtp:'Send OTP →', enterOtp:'Enter OTP', verifyOtp:'Verify & Sign In →',
+    demoHint2:'Demo — tap:', didntGet:"Didn't get OTP?", resend:' Resend', changeMobile:'← Change number',
+    errMobileLen:'Please enter a valid 10-digit mobile number.',
+    errMobileNotFound:'No account found. Please register.',
+    errMobileExists:'This number is already registered.',
+    errEnterOtp:'Please enter the 6-digit OTP.',
+    errWrongOtp:'Wrong OTP. Please try again.',
+    errName:'Please enter your first and last name.',
+    errTrade:'Please select your primary trade.',
+    tabFind:'Find', tabJobs:'Work', tabMessages:'Messages', tabProfile:'Profile',
+    postJob:'+ Post Work',
+    rateNegotiable:'Discuss', availFrom:'Free from', discuss:'Discuss',
+    expressInterest:'Interested', interestedIn:'Interested in',
+    allTrades:'All Trades', general:'General',
+    availNow:'✅ Available Now', availNowShort:'Available',
+    availWeek:'📅 This Week', availWeekShort:'This Week',
+    availFull:'🔴 Busy/Booked', availFullShort:'Busy',
+    contactNowBtn:'📞 Contact Now', contactTitle:'Contact',
+    save:'💾 Save', saved:'saved!',
+    noResults:'No Results', noResultsPh:'Try a different search.',
+    noMessages:'No Messages Yet', noMessagesPh:'Contact a sub-contractor to start.',
+    statRating:'Rating', statJobs:'Works Done', perHour:'₹/rate', statExp:'Yrs Exp',
+    specializations:'Work Types & Skills', bioLabel:'About',
+    contactInfo:'Contact Info', location:'City', availability:'Availability',
+    firstName:'First Name', lastName:'Last Name', primaryTrade:'Primary Trade',
+    hourlyRate:'Rate (₹)', yearsExp:'Yrs Exp', selectTrade:'Select trade...',
+    editProfile:'Edit Profile', saveProfile:'Save Profile',
+    cancel:'Cancel', signOut:'Sign Out', youBadge:'YOU', newBadge:'New',
+    emptyBio:'No bio added yet.', emptySkills:'No skills added.',
+    profileUpdated:'Profile updated!', msgSent:'Message sent to',
+    jobPosted:'Work posted successfully!', welcomeMsg:'Welcome to Contractor Bhai',
+    postJobTitle:'Post Sub-Contract Work', jobTitle:'Work Title', tradeRequired:'Trade Required',
+    budget:'Budget / Rate', startDate:'Start When', description:'Full Details',
+    sendMessage:'📨 Send Message', locationPh:'Mumbai, Maharashtra',
+  },
+  hi: {
+    signIn:'साइन इन', register:'रजिस्टर करें', tagline:'ठेकेदारों का नेटवर्क',
+    mobileNo:'मोबाइल नंबर', mobilePh:'98765 43210',
+    sendOtp:'OTP भेजें →', enterOtp:'OTP डालें', verifyOtp:'वेरीफाई करें →',
+    demoHint2:'डेमो — टैप:', didntGet:'OTP नहीं मिला?', resend:' दोबारा भेजें', changeMobile:'← नंबर बदलें',
+    errMobileLen:'10 अंकों का सही मोबाइल नंबर डालें।',
+    errMobileNotFound:'इस नंबर पर अकाउंट नहीं। रजिस्टर करें।',
+    errMobileExists:'यह नंबर पहले से रजिस्टर है।',
+    errEnterOtp:'6 अंकों का OTP डालें।',
+    errWrongOtp:'OTP गलत है। फिर कोशिश करें।',
+    errName:'अपना पूरा नाम डालें।',
+    errTrade:'अपना मुख्य काम चुनें।',
+    tabFind:'खोजें', tabJobs:'काम', tabMessages:'संदेश', tabProfile:'प्रोफाइल',
+    postJob:'+ काम पोस्ट करें',
+    rateNegotiable:'बात करें', availFrom:'फ्री है', discuss:'बात करें',
+    expressInterest:'दिलचस्पी है', interestedIn:'इस काम में दिलचस्पी',
+    allTrades:'सभी काम', general:'सामान्य',
+    availNow:'✅ अभी उपलब्ध', availNowShort:'उपलब्ध',
+    availWeek:'📅 इस हफ्ते', availWeekShort:'इस हफ्ते',
+    availFull:'🔴 व्यस्त हूँ', availFullShort:'व्यस्त',
+    contactNowBtn:'📞 संपर्क करें', contactTitle:'संपर्क',
+    save:'💾 सेव करें', saved:'सेव हो गया!',
+    noResults:'कोई नतीजा नहीं', noResultsPh:'अलग से खोजें।',
+    noMessages:'कोई संदेश नहीं', noMessagesPh:'किसी को संपर्क करें।',
+    statRating:'रेटिंग', statJobs:'किए काम', perHour:'₹/दर', statExp:'वर्ष अनुभव',
+    specializations:'काम के प्रकार और स्किल', bioLabel:'परिचय',
+    contactInfo:'संपर्क जानकारी', location:'शहर', availability:'उपलब्धता',
+    firstName:'पहला नाम', lastName:'अंतिम नाम', primaryTrade:'मुख्य काम',
+    hourlyRate:'दर (₹)', yearsExp:'अनुभव (वर्ष)', selectTrade:'काम चुनें...',
+    editProfile:'प्रोफाइल बदलें', saveProfile:'सेव करें',
+    cancel:'रद्द करें', signOut:'साइन आउट', youBadge:'आप', newBadge:'नया',
+    emptyBio:'कोई परिचय नहीं।', emptySkills:'कोई स्किल नहीं।',
+    profileUpdated:'प्रोफाइल अपडेट हो गई!', msgSent:'संदेश भेजा गया',
+    jobPosted:'काम पोस्ट हो गया!', welcomeMsg:'Contractor Bhai में स्वागत है',
+    postJobTitle:'सब-कॉन्ट्रैक्ट काम पोस्ट करें', jobTitle:'काम का नाम', tradeRequired:'कौन सा काम',
+    budget:'बजट / रेट', startDate:'कब से', description:'पूरी जानकारी',
+    sendMessage:'📨 संदेश भेजें', locationPh:'मुंबई, महाराष्ट्र',
+  }
+};
+
+function t(key) { return (TRANSLATIONS[currentLang] || TRANSLATIONS.en)[key] || key; }
+
+function toggleLang() {
+  currentLang = currentLang === 'en' ? 'hi' : 'en';
+  const label = currentLang === 'en' ? 'हिं' : 'EN';
+  document.querySelectorAll('#lang-toggle-btn, #auth-lang-btn').forEach(el => el.textContent = label);
+  applyTranslations();
+  renderContractors();
+  renderJobs();
+  if (document.getElementById('screen-profile').classList.contains('active')) renderProfile();
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (t(key) !== key) el.textContent = t(key);
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    if (t(key) !== key) el.placeholder = t(key);
+  });
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.classList.toggle('dark');
+  document.getElementById('theme-toggle-btn').textContent = isDark ? '🌙' : '☀️';
+  localStorage.setItem('cb-theme', isDark ? 'dark' : 'light');
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  // Theme
+  if (localStorage.getItem('cb-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    const btn = document.getElementById('theme-toggle-btn');
+    if (btn) btn.textContent = '🌙';
+  }
+
+  // Wait for Firebase to initialize then watch auth state
+  const checkFB = setInterval(() => {
+    if (!window._FB) return;
+    clearInterval(checkFB);
+
+    const { auth, onAuthStateChanged } = window._FB;
+    onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // Already signed in — load their profile
+        const { db, doc, getDoc } = window._FB;
+        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+        if (snap.exists()) {
+          currentUser = { uid: firebaseUser.uid, ...snap.data() };
+          await afterLogin();
+        } else {
+          // Auth exists but no Firestore profile — go to register
+          showScreen('screen-auth');
+          switchAuthTab('register');
+        }
+      } else {
+        showScreen('screen-auth');
+      }
+    });
+  }, 200);
+
+  // Add invisible recaptcha containers to DOM
+  const rc1 = document.createElement('div'); rc1.id = 'recaptcha-login';
+  const rc2 = document.createElement('div'); rc2.id = 'recaptcha-register';
+  document.body.appendChild(rc1); document.body.appendChild(rc2);
+});
+
+</script>
+</body>
+</html>
