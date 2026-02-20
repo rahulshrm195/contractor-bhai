@@ -2,6 +2,13 @@
 
 ---
 
+## v1.6 — 21 Feb 2026
+### Added
+- "What's New" section in Profile screen — users can now see all version updates inside the app
+- Each version shown as a card with date, version number and changes listed
+
+---
+
 ## v1.5 — 21 Feb 2026
 ### Fixed
 - Jobs tab clicking did nothing — div IDs were mismatched (tab-jobs vs main-jobs)
