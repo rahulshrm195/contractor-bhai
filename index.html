@@ -1393,6 +1393,9 @@ html, body {
             <option value="painting">🎨 Painting — पेंटिंग</option>
             <option value="hvac">❄️ AC / HVAC</option>
             <option value="welding">🔥 Welding — वेल्डिंग</option>
+            <option value="pop">🪟 POP Work — POP / फॉल्स सीलिंग</option>
+            <option value="cushion">🛋️ Cushion / Sofa — कुशन का काम</option>
+            <option value="tiles">🔲 Tiles — टाइल्स का काम</option>
             <option value="general">🔨 General Labor — सामान्य मजदूरी</option>
           </select>
         </div>
@@ -1489,6 +1492,9 @@ html, body {
         <div class="pill" onclick="setTrade('painting', this)">🎨 Painting</div>
         <div class="pill" onclick="setTrade('hvac', this)">❄️ HVAC</div>
         <div class="pill" onclick="setTrade('welding', this)">🔥 Welding</div>
+        <div class="pill" onclick="setTrade('pop', this)">🪟 POP</div>
+        <div class="pill" onclick="setTrade('cushion', this)">🛋️ Cushion</div>
+        <div class="pill" onclick="setTrade('tiles', this)">🔲 Tiles</div>
         <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
       </div>
       <div class="stats-bar">
@@ -1604,6 +1610,9 @@ html, body {
           <option value="painting">🎨 Painting — पेंटिंग</option>
           <option value="hvac">❄️ AC / HVAC</option>
           <option value="welding">🔥 Welding — वेल्डिंग</option>
+          <option value="pop">🪟 POP Work</option>
+          <option value="cushion">🛋️ Cushion / Sofa</option>
+          <option value="tiles">🔲 Tiles</option>
           <option value="general">🔨 General Sub-Work</option>
         </select>
       </div>
@@ -1678,6 +1687,9 @@ html, body {
           <option value="concrete">🏗️ Concrete</option>
           <option value="roofing">🏠 Roofing</option>
           <option value="painting">🎨 Painting</option>
+          <option value="pop">🪟 POP Work</option>
+          <option value="cushion">🛋️ Cushion / Sofa</option>
+          <option value="tiles">🔲 Tiles</option>
           <option value="general">🔨 General Labor</option>
         </select>
       </div>
@@ -1775,12 +1787,12 @@ let unsubJobs     = null;   // Firestore real-time listener
 const TRADE_LABELS = {
   electrical:'⚡ Electrical', plumbing:'🔧 Plumbing', carpentry:'🪵 Carpentry',
   masonry:'🧱 Masonry', hvac:'❄️ AC/HVAC', painting:'🎨 Painting',
-  welding:'🔥 Welding', general:'🔨 General Labor'
+  welding:'🔥 Welding', pop:'🪟 POP Work', cushion:'🛋️ Cushion/Sofa', tiles:'🔲 Tiles', general:'🔨 General Labor'
 };
 const TRADE_COLORS = {
   electrical:'#d97706', plumbing:'#0ea5e9', carpentry:'#c2410c',
   masonry:'#16a34a', hvac:'#7c3aed', painting:'#be185d',
-  welding:'#ea580c', general:'#64748b'
+  welding:'#ea580c', pop:'#8b5cf6', cushion:'#ec4899', tiles:'#0891b2', general:'#64748b'
 };
 const ALL_SKILLS = [
   'Modular Furniture','Wardrobe','Modular Kitchen','False Ceiling','Wooden Flooring',
