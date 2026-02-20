@@ -2,19 +2,23 @@
 
 ---
 
+## v1.8 — 21 Feb 2026
+### Fixed
+- Profile stats (Rating, Works Done, Rate, Experience) were too cramped in a single horizontal row
+- Changed to a clean 2x2 grid — each stat gets its own card, clearly readable on both mobile and desktop
+
+---
+
 ## v1.7 — 21 Feb 2026
 ### Changed
-- What's New moved to its own dedicated screen (was inline in Profile — too long)
-- Profile now shows a clean "See all updates & changes →" button
-- New screen has back button → returns to Profile
-- Scalable: as versions grow, Sign Out button stays accessible in Profile
+- What's New moved to its own dedicated screen
+- Profile shows clean "See all updates & changes →" button
 
 ---
 
 ## v1.6 — 21 Feb 2026
 ### Added
 - What's New section added in Profile screen
-- Each version shown as a card with date, version number and changes
 
 ---
 
