@@ -1403,6 +1403,18 @@ html, body {
           </div>
         </div>
         <div class="form-group">
+          <label class="form-label">मैं हूँ / I am a</label>
+          <div style="display:flex;gap:8px;">
+            <div id="type-contractor" onclick="setUserType('contractor')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--accent);background:rgba(255,107,0,0.08);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--accent);">
+              🔨 Contractor
+            </div>
+            <div id="type-supplier" onclick="setUserType('supplier')" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--muted);">
+              🏭 Supplier / Vendor
+            </div>
+          </div>
+          <input type="hidden" id="reg-usertype" value="contractor">
+        </div>
+        <div class="form-group">
           <label class="form-label" data-i18n="primaryTrade">मुख्य काम / Primary Trade</label>
           <select class="form-select" id="reg-trade">
             <option value="" data-i18n="selectTrade">अपना काम चुनें / Select trade...</option>
@@ -1416,6 +1428,7 @@ html, body {
             <option value="pop">🪟 POP Work — POP / फॉल्स सीलिंग</option>
             <option value="cushion">🛋️ Cushion / Sofa — कुशन का काम</option>
             <option value="tiles">🔲 Tiles — टाइल्स का काम</option>
+            <option value="cnc">⚙️ CNC Work — सीएनसी का काम</option>
             <option value="general">🔨 General Labor — सामान्य मजदूरी</option>
           </select>
         </div>
@@ -1514,6 +1527,8 @@ html, body {
         <div class="pill" onclick="setTrade('pop', this)">🪟 POP</div>
         <div class="pill" onclick="setTrade('cushion', this)">🛋️ Cushion</div>
         <div class="pill" onclick="setTrade('tiles', this)">🔲 Tiles</div>
+        <div class="pill" onclick="setTrade('cnc', this)">⚙️ CNC</div>
+        <div class="pill" onclick="setTrade('cnc', this)">⚙️ CNC</div>
         <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
       </div>
       <div class="stats-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;">
@@ -1545,6 +1560,21 @@ html, body {
           <span class="search-icon">🔍</span>
           <input type="text" class="search-input" data-i18n-placeholder="searchJobs" placeholder="Search jobs..." oninput="filterJobs(this.value)">
         </div>
+      </div>
+      <div class="trade-pills" id="job-trade-pills" style="padding:0 14px 8px;">
+        <div class="pill active" onclick="setJobTrade('all', this)">All Trades</div>
+        <div class="pill" onclick="setJobTrade('carpentry', this)">🪵 Carpentry</div>
+        <div class="pill" onclick="setJobTrade('electrical', this)">⚡ Electrical</div>
+        <div class="pill" onclick="setJobTrade('plumbing', this)">🔧 Plumbing</div>
+        <div class="pill" onclick="setJobTrade('masonry', this)">🧱 Masonry</div>
+        <div class="pill" onclick="setJobTrade('painting', this)">🎨 Painting</div>
+        <div class="pill" onclick="setJobTrade('hvac', this)">❄️ HVAC</div>
+        <div class="pill" onclick="setJobTrade('welding', this)">🔥 Welding</div>
+        <div class="pill" onclick="setJobTrade('pop', this)">🪟 POP</div>
+        <div class="pill" onclick="setJobTrade('cushion', this)">🛋️ Cushion</div>
+        <div class="pill" onclick="setJobTrade('tiles', this)">🔲 Tiles</div>
+        <div class="pill" onclick="setJobTrade('cnc', this)">⚙️ CNC</div>
+        <div class="pill" onclick="setJobTrade('general', this)">🔨 General</div>
       </div>
       <div class="scroll-area">
         <div class="section-header" data-i18n="allJobs">All Jobs <span class="urgent-badge">🔥 Urgent marked</span></div>
@@ -1652,6 +1682,7 @@ html, body {
       <div class="form-group">
         <label class="form-label" data-i18n="tradeRequired">Trade Chahiye</label>
         <select class="form-select" id="pj-trade">
+          <option value="">— Trade Select Karo —</option>
           <option value="carpentry">🪵 Carpentry — बढ़ई</option>
           <option value="electrical">⚡ Electrical — बिजली</option>
           <option value="plumbing">🔧 Plumbing — पाइप</option>
@@ -1662,6 +1693,8 @@ html, body {
           <option value="pop">🪟 POP Work</option>
           <option value="cushion">🛋️ Cushion / Sofa</option>
           <option value="tiles">🔲 Tiles</option>
+          <option value="cnc">⚙️ CNC Work</option>
+          <option value="cnc">⚙️ CNC Work</option>
           <option value="general">🔨 General Sub-Work</option>
         </select>
       </div>
@@ -1739,6 +1772,7 @@ html, body {
           <option value="pop">🪟 POP Work</option>
           <option value="cushion">🛋️ Cushion / Sofa</option>
           <option value="tiles">🔲 Tiles</option>
+          <option value="cnc">⚙️ CNC Work</option>
           <option value="general">🔨 General Labor</option>
         </select>
       </div>
@@ -1830,6 +1864,7 @@ let pendingRegData      = null;   // Registration form data waiting for OTP
 let selectedSkills = [];
 let activeTradeFilter = 'all';
 let availOnlyFilter = false;
+let activeJobTradeFilter = 'all';
 let currentLang   = 'en';
 let unsubJobs     = null;   // Firestore real-time listener
 
@@ -2077,7 +2112,7 @@ async function registerVerifyOtp() {
       availFrom: d.avail === 'now' ? 'Abhi se' : d.avail === 'week' ? 'Is hafte' : 'Baad mein',
       rating: 0, jobsDone: 0, skills: [], workTypes: ['Negotiable'],
       color: TRADE_COLORS[d.trade] || '#ff6b00',
-      verified: false, isContractor: true, initials,
+      verified: false, isContractor: true, userType: document.getElementById('reg-usertype')?.value || 'contractor', initials,
       createdAt: FB().serverTimestamp(),
     };
 
@@ -2185,6 +2220,19 @@ function toggleAvailOnly() {
   filterContractors(document.getElementById('search-input')?.value || '');
 }
 
+function setUserType(type) {
+  document.getElementById('reg-usertype').value = type;
+  const c = document.getElementById('type-contractor');
+  const s = document.getElementById('type-supplier');
+  if (type === 'contractor') {
+    c.style.border = '2px solid var(--accent)'; c.style.background = 'rgba(255,107,0,0.08)'; c.style.color = 'var(--accent)';
+    s.style.border = '2px solid var(--border)'; s.style.background = 'var(--surface2)'; s.style.color = 'var(--muted)';
+  } else {
+    s.style.border = '2px solid var(--accent)'; s.style.background = 'rgba(255,107,0,0.08)'; s.style.color = 'var(--accent)';
+    c.style.border = '2px solid var(--border)'; c.style.background = 'var(--surface2)'; c.style.color = 'var(--muted)';
+  }
+}
+
 function setTrade(trade, el) {
   activeTradeFilter = trade;
   document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
@@ -2229,6 +2277,7 @@ function renderContractors(list) {
           <div class="name-row">
             <span class="card-name">${c.firstName} ${c.lastName}</span>
             ${c.verified ? '<span title="Verified" style="font-size:12px">✅</span>' : ''}
+            ${c.userType === 'supplier' ? '<span style="font-size:10px;background:rgba(14,165,233,0.12);color:#0ea5e9;border:1px solid #0ea5e9;border-radius:4px;padding:1px 5px;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.5px;">SUPPLIER</span>' : ''}
             ${isMe ? `<span class="you-badge">${t('youBadge')}</span>` : ''}
           </div>
           <div class="card-trade" style="color:${c.color||'#ff6b00'}">${TRADE_LABELS[c.trade]||c.trade}</div>
@@ -2341,16 +2390,23 @@ function subscribeJobs() {
   });
 }
 
+function setJobTrade(trade, el) {
+  activeJobTradeFilter = trade;
+  document.querySelectorAll('#job-trade-pills .pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  filterJobs(document.querySelector('#main-jobs .search-input')?.value || '');
+}
+
 function filterJobs(queryStr) {
   const q = (queryStr || '').toLowerCase().trim();
-  const filtered = q
-    ? allJobs.filter(j =>
-        (j.title||'').toLowerCase().includes(q) ||
-        (j.trade||'').toLowerCase().includes(q) ||
-        (j.location||'').toLowerCase().includes(q) ||
-        (j.company||'').toLowerCase().includes(q)
-      )
-    : allJobs;
+  let filtered = allJobs;
+  if (activeJobTradeFilter !== 'all') filtered = filtered.filter(j => j.trade === activeJobTradeFilter);
+  if (q) filtered = filtered.filter(j =>
+    (j.title||'').toLowerCase().includes(q) ||
+    (j.trade||'').toLowerCase().includes(q) ||
+    (j.location||'').toLowerCase().includes(q) ||
+    (j.company||'').toLowerCase().includes(q)
+  );
   renderJobs(filtered);
 }
 
@@ -2367,7 +2423,10 @@ function renderJobs(list) {
         <div class="job-icon">${j.icon || '📋'}</div>
         <div style="flex:1;min-width:0;">
           <div class="job-title">${j.title} ${j.urgent ? '<span style="color:var(--accent)">🔥</span>' : ''}</div>
-          <div class="job-company">${j.company || 'Posted by contractor'}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:2px;">
+            <span style="font-size:11px;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:${TRADE_COLORS[j.trade]||'var(--accent)'};">${TRADE_LABELS[j.trade]||j.trade||''}</span>
+            <span style="font-size:11px;color:var(--muted);">${j.company || ''}</span>
+          </div>
         </div>
       </div>
       ${j.scope ? `<div style="font-size:13px;color:var(--muted);margin:8px 0 4px;line-height:1.4;">${j.scope}</div>` : ''}
@@ -2415,8 +2474,9 @@ async function submitJob() {
   const desc       = document.getElementById('pj-desc').value.trim();
 
   if (!title) { showToast('Kaam ka title zaroori hai.'); return; }
+  if (!trade) { showToast('Trade select karna zaroori hai.'); return; }
 
-  const icons = { electrical:'⚡', plumbing:'🔧', carpentry:'🪵', masonry:'🧱', painting:'🎨', hvac:'❄️', welding:'🔥', general:'🔨' };
+  const icons = { electrical:'⚡', plumbing:'🔧', carpentry:'🪵', masonry:'🧱', painting:'🎨', hvac:'❄️', welding:'🔥', pop:'🪟', cushion:'🛋️', tiles:'🔲', cnc:'⚙️', general:'🔨' };
   const me = currentUser;
 
   const { db, collection, addDoc, serverTimestamp } = FB();
