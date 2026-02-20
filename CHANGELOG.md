@@ -2,6 +2,14 @@
 
 ---
 
+## v1.5 — 21 Feb 2026
+### Fixed
+- Jobs tab clicking did nothing — div IDs were mismatched (tab-jobs vs main-jobs)
+- Messages tab clicking did nothing — same mismatch (tab-msg vs main-messages)
+- Added missing setActiveNav() function — bottom nav active state now works correctly
+
+---
+
 ## v1.4 — 21 Feb 2026
 ### Added
 - 3 new trades: POP Work (🪟), Cushion/Sofa (🛋️), Tiles (🔲)

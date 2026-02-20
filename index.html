@@ -2489,13 +2489,18 @@ function toggleSkill(skill, el) {
 // ============================================================
 //  UI HELPERS
 // ============================================================
+function setActiveNav(el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+}
+
 function switchMainTab(tab, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   if (el) el.classList.add('active');
-  document.getElementById('tab-find').style.display = tab === 'find' ? 'block' : 'none';
-  document.getElementById('tab-jobs').style.display = tab === 'jobs' ? 'block' : 'none';
-  document.getElementById('tab-msg').style.display  = tab === 'msg'  ? 'block' : 'none';
-  if (tab === 'msg') loadMessages();
+  document.getElementById('main-find').style.display     = tab === 'find'     ? 'flex' : 'none';
+  document.getElementById('main-jobs').style.display     = tab === 'jobs'     ? 'flex' : 'none';
+  document.getElementById('main-messages').style.display = tab === 'messages' ? 'flex' : 'none';
+  if (tab === 'messages') loadMessages();
 }
 
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
