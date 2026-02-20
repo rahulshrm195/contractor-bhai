@@ -1331,10 +1331,7 @@ html, body {
           </div>
         </div>
         <button class="btn-main" data-i18n="sendOtp" onclick="loginSendOtp()">Send OTP →</button>
-        <div style="text-align:center;margin-top:16px;font-size:13px;color:var(--muted);">
-          <span data-i18n="demoHint2">Demo:</span>
-          <span style="color:var(--accent);cursor:pointer;font-weight:600;" onclick="demoLogin()"> 98765 43210</span>
-        </div>
+
       </div>
 
       <!-- STEP 2: OTP verify -->
@@ -1371,11 +1368,11 @@ html, body {
         <div class="form-row">
           <div class="form-group">
             <label class="form-label" data-i18n="firstName">पहला नाम / First Name</label>
-            <input type="text" class="form-input" id="reg-first" data-i18n-placeholder="firstNamePh" placeholder="राम / Ram">
+            <input type="text" class="form-input" id="reg-first" data-i18n-placeholder="firstNamePh" placeholder="Enter your first name">
           </div>
           <div class="form-group">
             <label class="form-label" data-i18n="lastName">अंतिम नाम / Last Name</label>
-            <input type="text" class="form-input" id="reg-last" data-i18n-placeholder="lastNamePh" placeholder="शर्मा / Sharma">
+            <input type="text" class="form-input" id="reg-last" data-i18n-placeholder="lastNamePh" placeholder="Enter your last name">
           </div>
         </div>
         <div class="form-group">
@@ -1411,11 +1408,11 @@ html, body {
         </div>
         <div class="form-group">
           <label class="form-label" data-i18n="location">शहर / City</label>
-          <input type="text" class="form-input" id="reg-location" data-i18n-placeholder="locationPh" placeholder="मुंबई, महाराष्ट्र">
+          <input type="text" class="form-input" id="reg-location" data-i18n-placeholder="locationPh" placeholder="e.g. Mumbai, Maharashtra">
         </div>
         <div class="form-group">
           <label class="form-label" data-i18n="bioLabel">अपने बारे में / About You</label>
-          <textarea class="form-textarea" id="reg-bio" data-i18n-placeholder="bioPh" placeholder="अपने अनुभव और काम के बारे में लिखें..."></textarea>
+          <textarea class="form-textarea" id="reg-bio" data-i18n-placeholder="bioPh" placeholder="Write about your experience and work..."></textarea>
         </div>
         <div class="form-group">
           <label class="form-label" data-i18n="availability">उपलब्धता / Availability</label>
@@ -1831,10 +1828,6 @@ function setupRecaptcha(containerId) {
 }
 
 // ----- LOGIN -----
-function demoLogin() {
-  document.getElementById('login-mobile').value = '9876543210';
-  loginSendOtp();
-}
 
 async function loginSendOtp() {
   const mob = document.getElementById('login-mobile').value.trim();
