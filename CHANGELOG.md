@@ -2,59 +2,55 @@
 
 ---
 
+## v1.7 — 21 Feb 2026
+### Changed
+- What's New moved to its own dedicated screen (was inline in Profile — too long)
+- Profile now shows a clean "See all updates & changes →" button
+- New screen has back button → returns to Profile
+- Scalable: as versions grow, Sign Out button stays accessible in Profile
+
+---
+
 ## v1.6 — 21 Feb 2026
 ### Added
-- "What's New" section in Profile screen — users can now see all version updates inside the app
-- Each version shown as a card with date, version number and changes listed
+- What's New section added in Profile screen
+- Each version shown as a card with date, version number and changes
 
 ---
 
 ## v1.5 — 21 Feb 2026
 ### Fixed
-- Jobs tab clicking did nothing — div IDs were mismatched (tab-jobs vs main-jobs)
-- Messages tab clicking did nothing — same mismatch (tab-msg vs main-messages)
-- Added missing setActiveNav() function — bottom nav active state now works correctly
+- Jobs & Messages tabs not working — div ID mismatch fixed
+- Missing setActiveNav() function added
 
 ---
 
 ## v1.4 — 21 Feb 2026
 ### Added
 - 3 new trades: POP Work (🪟), Cushion/Sofa (🛋️), Tiles (🔲)
-- Available in: registration form, post work form, edit profile, and filter pills
 
 ---
 
 ## v1.3 — 21 Feb 2026
 ### Removed
-- Demo "Try Demo" button removed from login screen — app is now fully live
-- demoLogin() function removed from codebase
+- Demo "Try Demo" button removed — app is fully live
 
 ---
 
 ## v1.2 — 21 Feb 2026
 ### Fixed
-- Registration form placeholders showing "Ram / Sharma" — users thought name was pre-filled
-- All form placeholders now clearly say "Enter your first name / last name"
+- Registration placeholders showing "Ram / Sharma" — now clearly instructional
 
 ---
 
 ## v1.1 — 21 Feb 2026
 ### Fixed
-- Bottom navigation bar not visible on mobile browsers
-- Fixed with 100dvh (dynamic viewport height)
-- Bottom nav changed to position fixed
-- Added viewport-fit=cover for iPhone safe area support
+- Bottom nav not visible on mobile — fixed with 100dvh + position fixed
+- iPhone safe area support added
 
 ---
 
 ## v1.0 — 20 Feb 2026
 ### Launch
-- Initial launch of Contractor Bhai
-- Sub-contractor discovery network for Indian construction trades
-- Firebase Phone OTP authentication (real SMS)
-- Firestore database — users, jobs, messages
-- 9 demo contractors seeded
-- Hindi / English bilingual UI
-- Light / Dark theme
-- WhatsApp support button (+91 82754 07603)
-- Deployed at contractorbhai.netlify.app
+- Contractor Bhai goes live at contractorbhai.netlify.app
+- Firebase Phone OTP, Firestore database, bilingual UI

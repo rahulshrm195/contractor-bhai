@@ -1561,6 +1561,87 @@ html, body {
     </div>
   </div>
 
+  <!-- WHATS NEW SCREEN -->
+  <div id="screen-whatsnew" class="screen">
+    <div class="profile-header">
+      <button onclick="showScreen('screen-profile')" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;">←</button>
+      <h2>🆕 What's New</h2>
+      <div style="width:36px;"></div>
+    </div>
+    <div class="scroll-area">
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid var(--accent);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.6</span>
+            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            ✨ What's New moved to a separate screen<br>
+            ✨ What's New section added in Profile
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #22c55e;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.5</span>
+            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            🐛 Jobs & Messages tabs now work correctly<br>
+            🐛 Bottom nav active state fixed
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #16a34a;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.4</span>
+            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            ✨ 3 new trades added: POP Work, Cushion/Sofa, Tiles
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #0ea5e9;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.3</span>
+            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            🐛 Registration form placeholders fixed<br>
+            🗑️ Demo button removed — app is fully live
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #7c3aed;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.1 – v1.2</span>
+            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            🐛 Bottom nav now visible on all mobile browsers<br>
+            🐛 iPhone safe area support added
+          </div>
+        </div>
+
+        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #f59e0b;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+            <span style="font-weight:700;font-size:14px;">v1.0 — Launch 🚀</span>
+            <span style="font-size:11px;color:var(--muted);">20 Feb 2026</span>
+          </div>
+          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+            🎉 Contractor Bhai is live!<br>
+            📱 Real SMS OTP login<br>
+            🔥 Firebase database<br>
+            🌐 contractorbhai.netlify.app
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== MODALS ==================== -->
 
   <!-- CONTRACTOR DETAIL -->
@@ -2419,66 +2500,10 @@ function renderProfile() {
 
     <div class="profile-section" style="margin-top:8px;">
       <div class="profile-section-title">🆕 What's New</div>
-
-      <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px;">
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid var(--accent);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.5</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Jobs & Messages tabs now work correctly<br>
-            🐛 Bottom nav active state fixed
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #16a34a;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.4</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            ✨ 3 new trades added: POP Work, Cushion/Sofa, Tiles
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #0ea5e9;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.3</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Registration form placeholders fixed<br>
-            🗑️ Demo button removed — app is fully live
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #7c3aed;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.1 – v1.2</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Bottom nav now visible on all mobile browsers<br>
-            🐛 iPhone safe area support added
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #f59e0b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.0 — Launch 🚀</span>
-            <span style="font-size:11px;color:var(--muted);">20 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🎉 Contractor Bhai is live!<br>
-            📱 Real SMS OTP login<br>
-            🔥 Firebase database<br>
-            🌐 contractorbhai.netlify.app
-          </div>
-        </div>
-
-      </div>
+      <button onclick="showScreen('screen-whatsnew')" style="width:100%;margin-top:10px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:left;cursor:pointer;color:var(--text);font-size:14px;display:flex;align-items:center;justify-content:space-between;">
+        <span>See all updates & changes</span>
+        <span style="color:var(--muted);">→</span>
+      </button>
     </div>
 
     <button class="logout-btn" onclick="logout()">${t('signOut')}</button>
