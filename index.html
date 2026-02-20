@@ -514,6 +514,25 @@ html, body {
 }
 .card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
 
+.contractor-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+  animation: fadeUp 0.3s ease both;
+  box-shadow: var(--shadow-sm);
+}
+.contractor-card:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: var(--shadow); }
+
+.card-main {
+  padding: 12px 13px 8px;
+  display: flex;
+  gap: 11px;
+  align-items: flex-start;
+}
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
@@ -523,7 +542,7 @@ html, body {
   padding: 11px 13px 8px;
   display: flex;
   gap: 10px;
-  align-items: center;
+  align-items: flex-start;
 }
 
 .avatar-wrap { position: relative; flex-shrink: 0; }
@@ -2166,12 +2185,12 @@ function renderContractors(list) {
     const dotColor = c.avail === 'now' ? '#22c55e' : c.avail === 'week' ? '#f59e0b' : '#ef4444';
     return `
     <div class="contractor-card" style="animation-delay:${i*0.07}s" onclick="openDetail('${c.id}')">
-      <div class="card-main">
-        <div class="avatar-wrap">
+      <div class="card-top">
+        <div class="avatar-wrap" style="flex-shrink:0;">
           <div class="avatar" style="background:${c.color||'#ff6b00'}">${initials}</div>
           <div class="status-dot" style="background:${dotColor}"></div>
         </div>
-        <div class="card-info">
+        <div class="card-info" style="flex:1;min-width:0;">
           <div class="name-row">
             <span class="card-name">${c.firstName} ${c.lastName}</span>
             ${c.verified ? '<span title="Verified" style="font-size:12px">✅</span>' : ''}
@@ -2183,10 +2202,10 @@ function renderContractors(list) {
             <span class="meta-item">🔨 ${c.jobsDone||0} ${t('jobsDone')}</span>
           </div>
         </div>
-        <div class="card-rate">
+        <div class="card-rate" style="text-align:right;flex-shrink:0;">
           <div class="rate-amt">${rateDisplay(c)}</div>
           <div class="rate-unit">${rateUnit(c)}</div>
-          <div class="avail-tag ${avClass}">${avTxt}</div>
+          <div class="avail-tag ${avClass}" style="margin-top:4px;">${avTxt}</div>
         </div>
       </div>
       <div class="distance-stripe">📅 ${c.availFrom || t('availFrom')} &nbsp;·&nbsp; 📍 ${c.location||''}</div>

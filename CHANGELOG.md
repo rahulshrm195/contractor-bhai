@@ -2,21 +2,24 @@
 
 ---
 
+## v2.2 — 21 Feb 2026
+### Fixed
+- Contractor card layout was broken — avatar was floating alone on top left, name/trade stacking below it separately
+- Fixed to correct layout: [Avatar] [Name + Trade + Meta] [Rate + Availability] all on same row
+- Now matches intended design exactly
+
+---
+
 ## v2.1 — 21 Feb 2026
 ### Fixed
 - Contractor cards had too much blank vertical space
-- Tightened all padding across card-top, card-bottom, distance stripe
-- Avatar size reduced slightly for better proportion
-- Location and availability now sit in a compact single line
-- Cards now show more contractors on screen at once
+- Tightened all padding, avatar size reduced slightly
 
 ---
 
 ## v2.0 — 21 Feb 2026
 ### Changed
 - What's New screen now dynamically reads CHANGELOG.md from GitHub
-- No more hardcoding version cards in index.html
-- Just update CHANGELOG.md and push — What's New updates automatically
 
 ---
 
