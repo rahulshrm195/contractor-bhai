@@ -2,17 +2,23 @@
 
 ---
 
+## v1.9 — 21 Feb 2026
+### Fixed
+- Profile hero section was a horizontal flex row — avatar, name, trade and stats all going sideways and getting cut off
+- Fixed: avatar + name + trade now stack vertically, centered
+- Stats grid (2x2) moved below hero as its own full-width section — fully visible on all screen sizes
+
+---
+
 ## v1.8 — 21 Feb 2026
 ### Fixed
-- Profile stats (Rating, Works Done, Rate, Experience) were too cramped in a single horizontal row
-- Changed to a clean 2x2 grid — each stat gets its own card, clearly readable on both mobile and desktop
+- Profile stats changed from cramped horizontal row to 2x2 grid
 
 ---
 
 ## v1.7 — 21 Feb 2026
 ### Changed
 - What's New moved to its own dedicated screen
-- Profile shows clean "See all updates & changes →" button
 
 ---
 
@@ -25,7 +31,6 @@
 ## v1.5 — 21 Feb 2026
 ### Fixed
 - Jobs & Messages tabs not working — div ID mismatch fixed
-- Missing setActiveNav() function added
 
 ---
 
@@ -37,24 +42,22 @@
 
 ## v1.3 — 21 Feb 2026
 ### Removed
-- Demo "Try Demo" button removed — app is fully live
+- Demo button removed — app is fully live
 
 ---
 
 ## v1.2 — 21 Feb 2026
 ### Fixed
-- Registration placeholders showing "Ram / Sharma" — now clearly instructional
+- Registration placeholders fixed
 
 ---
 
 ## v1.1 — 21 Feb 2026
 ### Fixed
-- Bottom nav not visible on mobile — fixed with 100dvh + position fixed
-- iPhone safe area support added
+- Bottom nav not visible on mobile
 
 ---
 
 ## v1.0 — 20 Feb 2026
 ### Launch
 - Contractor Bhai goes live at contractorbhai.netlify.app
-- Firebase Phone OTP, Firestore database, bilingual UI

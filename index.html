@@ -905,10 +905,12 @@ html, body {
 .profile-hero {
   padding: 24px 18px 20px;
   display: flex;
-  gap: 18px;
-  align-items: flex-start;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  gap: 6px;
 }
 
 .profile-avatar-big {
@@ -963,7 +965,8 @@ html, body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin: 0 18px 18px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 .p-stat {
@@ -2429,15 +2432,15 @@ function renderProfile() {
 
   document.getElementById('profile-scroll').innerHTML = `
     <div class="profile-hero">
-      <div class="profile-avatar" style="background:${u.color||'#ff6b00'}">${initials}</div>
+      <div class="profile-avatar" style="background:${u.color||'#ff6b00'};width:72px;height:72px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-size:30px;font-weight:700;color:#fff;">${initials}</div>
       <div class="profile-name">${u.firstName} ${u.lastName} ${u.verified ? '✅' : ''}</div>
       <div class="profile-trade" style="color:${u.color||'#ff6b00'}">${TRADE_LABELS[u.trade]||u.trade||'—'}</div>
-      <div class="profile-stats">
-        <div class="p-stat"><div class="p-stat-val">⭐ ${u.rating||'New'}</div><div class="p-stat-label">${t('statRating')}</div></div>
-        <div class="p-stat"><div class="p-stat-val">🔨 ${u.jobsDone||0}</div><div class="p-stat-label">${t('statJobs')}</div></div>
-        <div class="p-stat"><div class="p-stat-val">${u.rate ? '₹'+u.rate : '—'}</div><div class="p-stat-label">${u.rateType||t('perHour')}</div></div>
-        <div class="p-stat"><div class="p-stat-val">📅 ${u.exp||0}</div><div class="p-stat-label">${t('statExp')}</div></div>
-      </div>
+    </div>
+    <div class="profile-stats">
+      <div class="p-stat"><div class="p-stat-val">⭐ ${u.rating||'New'}</div><div class="p-stat-label">${t('statRating')}</div></div>
+      <div class="p-stat"><div class="p-stat-val">🔨 ${u.jobsDone||0}</div><div class="p-stat-label">${t('statJobs')}</div></div>
+      <div class="p-stat"><div class="p-stat-val">${u.rate ? '₹'+u.rate : '—'}</div><div class="p-stat-label">${u.rateType||t('perHour')}</div></div>
+      <div class="p-stat"><div class="p-stat-val">📅 ${u.exp||0}</div><div class="p-stat-label">${t('statExp')}</div></div>
     </div>
     <div class="profile-section">
       <div class="profile-section-title">${t('availability')}</div>
