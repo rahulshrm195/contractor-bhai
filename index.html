@@ -1570,75 +1570,11 @@ html, body {
       <div style="width:36px;"></div>
     </div>
     <div class="scroll-area">
-      <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid var(--accent);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.6</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            ✨ What's New moved to a separate screen<br>
-            ✨ What's New section added in Profile
-          </div>
+      <div id="whatsnew-content" style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+        <div style="text-align:center;padding:40px 20px;color:var(--muted);">
+          <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+          <div style="font-size:14px;">Loading updates...</div>
         </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #22c55e;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.5</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Jobs & Messages tabs now work correctly<br>
-            🐛 Bottom nav active state fixed
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #16a34a;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.4</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            ✨ 3 new trades added: POP Work, Cushion/Sofa, Tiles
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #0ea5e9;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.3</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Registration form placeholders fixed<br>
-            🗑️ Demo button removed — app is fully live
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #7c3aed;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.1 – v1.2</span>
-            <span style="font-size:11px;color:var(--muted);">21 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🐛 Bottom nav now visible on all mobile browsers<br>
-            🐛 iPhone safe area support added
-          </div>
-        </div>
-
-        <div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid #f59e0b;">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
-            <span style="font-weight:700;font-size:14px;">v1.0 — Launch 🚀</span>
-            <span style="font-size:11px;color:var(--muted);">20 Feb 2026</span>
-          </div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-            🎉 Contractor Bhai is live!<br>
-            📱 Real SMS OTP login<br>
-            🔥 Firebase database<br>
-            🌐 contractorbhai.netlify.app
-          </div>
-        </div>
-
       </div>
     </div>
   </div>
@@ -1892,10 +1828,65 @@ const ALL_SKILLS = [
 // ============================================================
 //  SCREEN NAV
 // ============================================================
+// Colors cycling for version cards
+const VERSION_COLORS = ['#ff6b00','#22c55e','#0ea5e9','#7c3aed','#f59e0b','#ec4899','#16a34a','#ea580c','#0891b2'];
+
+async function loadChangelog() {
+  const container = document.getElementById('whatsnew-content');
+  try {
+    const res = await fetch('https://raw.githubusercontent.com/rahulshrm195/contractor-bhai/main/CHANGELOG.md');
+    if (!res.ok) throw new Error('Failed to fetch');
+    const text = await res.text();
+
+    // Split on lines starting with ##
+    const lines = text.split('\n');
+    const blocks = [];
+    let current = null;
+    for (const line of lines) {
+      if (line.startsWith('## ')) {
+        if (current) blocks.push(current);
+        current = { header: line.replace('## ', '').trim(), items: [] };
+      } else if (current && line.trim() && !line.startsWith('###') && !line.startsWith('---')) {
+        const clean = (line.startsWith('- ') || line.startsWith('* ')) ? line.slice(2).trim() : line.trim();
+        if (clean) current.items.push(clean);
+      }
+    }
+    if (current) blocks.push(current);
+
+    if (blocks.length === 0) {
+      container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted);">No updates found.</div>';
+      return;
+    }
+
+    container.innerHTML = blocks.map((block, i) => {
+      // Split header into version and date e.g "v1.9 — 21 Feb 2026"
+      const dashIdx = block.header.search(/[—–-]/);
+      const version = dashIdx > -1 ? block.header.slice(0, dashIdx).trim() : block.header;
+      const date    = dashIdx > -1 ? block.header.slice(dashIdx + 1).trim() : '';
+      const color   = VERSION_COLORS[i % VERSION_COLORS.length];
+      return '<div style="background:var(--surface2);border-radius:12px;padding:14px;border-left:3px solid ' + color + ';">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">'
+        + '<span style="font-weight:700;font-size:14px;">' + version + '</span>'
+        + (date ? '<span style="font-size:11px;color:var(--muted);">' + date + '</span>' : '')
+        + '</div>'
+        + '<div style="font-size:13px;color:var(--muted);line-height:1.8;">'
+        + block.items.join('<br>')
+        + '</div></div>';
+    }).join('');
+
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:40px 20px;color:var(--muted);">'
+      + '<div style="font-size:32px;margin-bottom:12px;">📡</div>'
+      + '<div style="font-size:14px;">Could not load updates.<br>Check your connection and try again.</div>'
+      + '</div>';
+  }
+}
+
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   if (id === 'screen-profile') renderProfile();
+  if (id === 'screen-whatsnew') loadChangelog();
 }
 
 // ============================================================

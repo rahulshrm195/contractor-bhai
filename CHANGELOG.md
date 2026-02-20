@@ -2,17 +2,24 @@
 
 ---
 
+## v2.0 — 21 Feb 2026
+### Changed
+- What's New screen now dynamically reads CHANGELOG.md from GitHub
+- No more hardcoding version cards in index.html
+- Just update CHANGELOG.md and push — What's New updates automatically
+
+---
+
 ## v1.9 — 21 Feb 2026
 ### Fixed
-- Profile hero section was a horizontal flex row — avatar, name, trade and stats all going sideways and getting cut off
-- Fixed: avatar + name + trade now stack vertically, centered
-- Stats grid (2x2) moved below hero as its own full-width section — fully visible on all screen sizes
+- Profile hero section layout broken on mobile — avatar, name, trade now stack vertically centered
+- Stats 2x2 grid moved below hero as full-width section
 
 ---
 
 ## v1.8 — 21 Feb 2026
 ### Fixed
-- Profile stats changed from cramped horizontal row to 2x2 grid
+- Profile stats changed from cramped horizontal row to clean 2x2 grid
 
 ---
 
@@ -31,12 +38,13 @@
 ## v1.5 — 21 Feb 2026
 ### Fixed
 - Jobs & Messages tabs not working — div ID mismatch fixed
+- Missing setActiveNav() function added
 
 ---
 
 ## v1.4 — 21 Feb 2026
 ### Added
-- 3 new trades: POP Work (🪟), Cushion/Sofa (🛋️), Tiles (🔲)
+- 3 new trades: POP Work, Cushion/Sofa, Tiles
 
 ---
 
@@ -61,3 +69,4 @@
 ## v1.0 — 20 Feb 2026
 ### Launch
 - Contractor Bhai goes live at contractorbhai.netlify.app
+- Firebase Phone OTP, Firestore database, bilingual UI
