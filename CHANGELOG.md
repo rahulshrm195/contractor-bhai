@@ -2,18 +2,24 @@
 
 ---
 
+## v2.3 — 21 Feb 2026
+### Added
+- Availability is now the default sort — Available Now always shows first, then This Week, then Busy/Booked
+- "Available Only" toggle button on the stats bar — hides Busy/Booked contractors
+- Toggle keeps "Available Now" AND "Available This Week" — because someone free next week is still useful
+- Toggle turns green when active so user knows filter is on
+
+---
+
 ## v2.2 — 21 Feb 2026
 ### Fixed
-- Contractor card layout was broken — avatar was floating alone on top left, name/trade stacking below it separately
-- Fixed to correct layout: [Avatar] [Name + Trade + Meta] [Rate + Availability] all on same row
-- Now matches intended design exactly
+- Contractor card layout fixed — avatar, name, trade, rate all on same row as intended
 
 ---
 
 ## v2.1 — 21 Feb 2026
 ### Fixed
-- Contractor cards had too much blank vertical space
-- Tightened all padding, avatar size reduced slightly
+- Contractor cards had too much blank vertical space — tightened all padding
 
 ---
 

@@ -1517,9 +1517,22 @@ html, body {
         <div class="pill" onclick="setTrade('tiles', this)">🔲 Tiles</div>
         <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
       </div>
-      <div class="stats-bar">
-        <div class="avail-dot"></div>
-        <span class="stats-text" id="stats-text"></span>
+      <div class="stats-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;">
+        <div style="display:flex;align-items:center;gap:6px;">
+          <div class="avail-dot"></div>
+          <span class="stats-text" id="stats-text"></span>
+        </div>
+        <button id="avail-toggle" onclick="toggleAvailOnly()" style="
+          font-family:'Barlow Condensed',sans-serif;
+          font-size:11px;font-weight:700;letter-spacing:0.5px;
+          text-transform:uppercase;
+          border:1px solid var(--border);
+          border-radius:20px;padding:4px 10px;
+          cursor:pointer;
+          background:var(--surface2);color:var(--muted);
+          transition:all 0.2s;white-space:nowrap;">
+          🟢 Available Only
+        </button>
       </div>
       <div class="scroll-area">
         <div class="cards" id="contractor-cards" style="padding-bottom:20px;"></div>
@@ -1817,6 +1830,7 @@ let pendingConfirmation = null;   // Firebase SMS confirmation object
 let pendingRegData      = null;   // Registration form data waiting for OTP
 let selectedSkills = [];
 let activeTradeFilter = 'all';
+let availOnlyFilter = false;
 let currentLang   = 'en';
 let unsubJobs     = null;   // Firestore real-time listener
 
@@ -2147,7 +2161,29 @@ function filterContractors(q) {
   if (query) list = list.filter(c =>
     `${c.firstName} ${c.lastName} ${c.trade} ${c.location} ${(c.skills||[]).join(' ')}`.toLowerCase().includes(query)
   );
+  // Hide busy/booked if toggle is on — but keep 'now' and 'week'
+  if (availOnlyFilter) list = list.filter(c => c.avail === 'now' || c.avail === 'week');
+  // Always sort: Available Now first, then This Week, then Busy
+  const order = { now: 0, week: 1, full: 2 };
+  list.sort((a, b) => (order[a.avail] ?? 2) - (order[b.avail] ?? 2));
   renderContractors(list);
+}
+
+function toggleAvailOnly() {
+  availOnlyFilter = !availOnlyFilter;
+  const btn = document.getElementById('avail-toggle');
+  if (availOnlyFilter) {
+    btn.style.background = 'rgba(34,197,94,0.15)';
+    btn.style.color = '#22c55e';
+    btn.style.borderColor = '#22c55e';
+    btn.textContent = '🟢 Available Only';
+  } else {
+    btn.style.background = 'var(--surface2)';
+    btn.style.color = 'var(--muted)';
+    btn.style.borderColor = 'var(--border)';
+    btn.textContent = '🟢 Available Only';
+  }
+  filterContractors(document.getElementById('search-input')?.value || '');
 }
 
 function setTrade(trade, el) {
