@@ -2,6 +2,16 @@
 
 ---
 
+## v2.1 — 21 Feb 2026
+### Fixed
+- Contractor cards had too much blank vertical space
+- Tightened all padding across card-top, card-bottom, distance stripe
+- Avatar size reduced slightly for better proportion
+- Location and availability now sit in a compact single line
+- Cards now show more contractors on screen at once
+
+---
+
 ## v2.0 — 21 Feb 2026
 ### Changed
 - What's New screen now dynamically reads CHANGELOG.md from GitHub
@@ -12,7 +22,7 @@
 
 ## v1.9 — 21 Feb 2026
 ### Fixed
-- Profile hero section layout broken on mobile — avatar, name, trade now stack vertically centered
+- Profile hero layout broken on mobile — now stacks vertically centered
 - Stats 2x2 grid moved below hero as full-width section
 
 ---
@@ -38,7 +48,6 @@
 ## v1.5 — 21 Feb 2026
 ### Fixed
 - Jobs & Messages tabs not working — div ID mismatch fixed
-- Missing setActiveNav() function added
 
 ---
 
