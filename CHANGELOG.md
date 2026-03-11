@@ -2,43 +2,49 @@
 
 ---
 
+## v2.6 — 21 Feb 2026
+### Added
+- PWA support — app is now installable on Android and iOS
+- Service worker — app works offline, caches static assets
+- Push notifications enabled — users get notified of new messages
+- Install banner — shows after 10 seconds prompting user to install
+- Apple/Android home screen icon (CB logo, orange background)
+- manifest.json and sw.js added to repo
+
+---
+
 ## v2.5 — 21 Feb 2026
 ### Added
-- Supplier / Vendor type on registration — toggle between Contractor and Supplier/Vendor
-- SUPPLIER badge shown on cards for vendors (blue tag, clearly distinct from contractors)
-- Trade filter pills on Jobs tab — carpenters see only carpentry jobs, painters see only painting jobs etc.
-- CNC Work (⚙️) added as a trade — registration, post job, find filter, jobs filter
-- Trade is now required when posting a job — cannot submit without selecting
-### Fixed
-- Job post icons map updated to include all new trades (POP, Cushion, Tiles, CNC)
-- Post job dropdown now has blank default option forcing conscious trade selection
-- Registration toggle label changed from "Sub-Contractor" to "Contractor"
+- Contractor / Supplier toggle on registration
+- SUPPLIER badge on vendor cards
+- Trade filter pills on Jobs tab
+- CNC Work trade added everywhere
+- Trade required when posting a job
 
 ---
 
 ## v2.4 — 21 Feb 2026
 ### Fixed
-- Theme toggle was broken — CSS vs JS mismatch fixed
-- Duplicate post job button removed from header
+- Theme toggle broken — fixed
+- Duplicate post button removed
 
 ---
 
 ## v2.3 — 21 Feb 2026
 ### Added
-- Availability default sort — Available Now first
-- Available Only toggle filter
+- Availability sort and Available Only toggle
 
 ---
 
 ## v2.2 — 21 Feb 2026
 ### Fixed
-- Contractor card layout fixed
+- Contractor card layout
 
 ---
 
 ## v2.1 — 21 Feb 2026
 ### Fixed
-- Contractor cards too much blank space
+- Card spacing
 
 ---
 

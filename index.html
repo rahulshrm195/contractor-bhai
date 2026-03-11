@@ -2,6 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Contractor Bhai">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="theme-color" content="#ff6b00">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>Contractor Bhai</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1528,7 +1535,6 @@ html, body {
         <div class="pill" onclick="setTrade('cushion', this)">🛋️ Cushion</div>
         <div class="pill" onclick="setTrade('tiles', this)">🔲 Tiles</div>
         <div class="pill" onclick="setTrade('cnc', this)">⚙️ CNC</div>
-        <div class="pill" onclick="setTrade('cnc', this)">⚙️ CNC</div>
         <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
       </div>
       <div class="stats-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;">
@@ -2909,6 +2915,72 @@ window.addEventListener('DOMContentLoaded', () => {
   document.body.appendChild(rc1); document.body.appendChild(rc2);
 });
 
+</script>
+<script>
+// ── Register Service Worker ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then(reg => {
+        console.log('SW registered:', reg.scope);
+        // Request notification permission after SW is ready
+        requestNotificationPermission();
+      })
+      .catch(err => console.log('SW registration failed:', err));
+  });
+}
+
+// ── Request Notification Permission ──
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'granted') return;
+  if (Notification.permission === 'denied') return;
+  
+  // Ask after a short delay so it feels natural
+  setTimeout(async () => {
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      showToast('🔔 Notifications enabled!');
+    }
+  }, 5000);
+}
+
+// ── Show install prompt ──
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Show install banner after 10 seconds
+  setTimeout(() => showInstallBanner(), 10000);
+});
+
+function showInstallBanner() {
+  if (!deferredPrompt) return;
+  const banner = document.createElement('div');
+  banner.id = 'install-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:80px;left:50%;transform:translateX(-50%);
+    background:#1e293b;color:#fff;padding:12px 16px;border-radius:12px;
+    display:flex;align-items:center;gap:12px;z-index:9999;
+    font-family:'Barlow Condensed',sans-serif;font-size:14px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.3);max-width:340px;width:90%;
+  `;
+  banner.innerHTML = `
+    <span>📲</span>
+    <span style="flex:1;">Install Contractor Bhai on your phone</span>
+    <button onclick="installApp()" style="background:#ff6b00;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;">Install</button>
+    <button onclick="document.getElementById('install-banner').remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;font-size:18px;">✕</button>
+  `;
+  document.body.appendChild(banner);
+}
+
+async function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById('install-banner')?.remove();
+}
 </script>
 </body>
 </html>
