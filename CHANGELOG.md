@@ -2,14 +2,23 @@
 
 ---
 
-## v2.6 — 21 Feb 2026
+## v2.7 — 12 Mar 2026
 ### Added
-- PWA support — app is now installable on Android and iOS
-- Service worker — app works offline, caches static assets
-- Push notifications enabled — users get notified of new messages
-- Install banner — shows after 10 seconds prompting user to install
-- Apple/Android home screen icon (CB logo, orange background)
-- manifest.json and sw.js added to repo
+- OTP auto-read on Android Chrome — SMS pops up automatically, one tap fills all 6 boxes
+- OTP paste support — copy OTP from SMS and paste, all boxes fill instantly
+- Auto-submit after OTP is auto-filled — no need to tap Verify button
+- autocomplete="one-time-code" on OTP inputs — iOS Safari shows OTP suggestion above keyboard
+- inputmode="numeric" — numeric keyboard opens automatically on all devices
+
+---
+
+## v2.6 — 11 Mar 2026
+### Added
+- PWA support — app installable on Android and iOS
+- Service worker with offline caching
+- Push notifications enabled
+- CB app icon — bold orange rounded square
+- Custom domain contractorbhai.online connected
 
 ---
 

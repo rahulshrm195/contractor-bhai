@@ -1367,7 +1367,7 @@ html, body {
         <div class="form-group">
           <label class="form-label" data-i18n="enterOtp">Enter OTP</label>
           <div class="otp-boxes" id="login-otp-boxes">
-            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" autocomplete="one-time-code" inputmode="numeric" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)" onpaste="handleOtpPaste(event,'login-otp-boxes')">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'login-otp-boxes')" onkeydown="otpBack(event,this)">
@@ -1474,7 +1474,7 @@ html, body {
         <div class="form-group">
           <label class="form-label" data-i18n="enterOtp">OTP डालें / Enter OTP</label>
           <div class="otp-boxes" id="reg-otp-boxes">
-            <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
+            <input class="otp-box" type="tel" maxlength="1" autocomplete="one-time-code" inputmode="numeric" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)" onpaste="handleOtpPaste(event,'reg-otp-boxes')">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
             <input class="otp-box" type="tel" maxlength="1" oninput="otpNext(this,'reg-otp-boxes')" onkeydown="otpBack(event,this)">
@@ -2002,6 +2002,7 @@ async function loginSendOtp() {
 
     document.getElementById('login-step1').style.display = 'none';
     document.getElementById('login-step2').style.display = 'block';
+    startOtpAutofill('login-otp-boxes');
     document.getElementById('login-otp-info').innerHTML =
       `📱 OTP <b>+91 ${mob.slice(0,5)} ${mob.slice(5)}</b> par bheja gaya!`;
     clearOtpBoxes('login-otp-boxes');
@@ -2089,6 +2090,7 @@ async function registerSendOtp() {
 
     document.getElementById('reg-step1').style.display = 'none';
     document.getElementById('reg-step2').style.display = 'block';
+    startOtpAutofill('reg-otp-boxes');
     document.getElementById('reg-otp-info').innerHTML =
       `📱 OTP <b>+91 ${mob.slice(0,5)} ${mob.slice(5)}</b> par bheja gaya!`;
     clearOtpBoxes('reg-otp-boxes');
@@ -2734,6 +2736,56 @@ function setLoading(containerId, on) {
 function availText(avail, short) {
   const map = { now: short ? t('availNowShort') : t('availNow'), week: short ? t('availWeekShort') : t('availWeek'), full: short ? t('availFullShort') : t('availFull') };
   return map[avail] || avail;
+}
+
+// ── Web OTP API — auto reads SMS on Android Chrome ──
+async function startOtpAutofill(boxesId) {
+  if (!('OTPCredential' in window)) return; // not supported
+  try {
+    const controller = new AbortController();
+    // Store controller so we can abort if user navigates away
+    window._otpAbort = controller;
+    const content = await navigator.credentials.get({
+      otp: { transport: ['sms'] },
+      signal: controller.signal
+    });
+    if (content && content.code) {
+      fillOtpBoxes(boxesId, content.code);
+      // Auto submit after fill
+      setTimeout(() => {
+        if (boxesId === 'login-otp-boxes') loginVerifyOtp();
+        else registerVerifyOtp();
+      }, 500);
+    }
+  } catch(e) {
+    // User dismissed or not supported — no problem, they type manually
+  }
+}
+
+function fillOtpBoxes(boxesId, code) {
+  const boxes = document.getElementById(boxesId).querySelectorAll('.otp-box');
+  const digits = code.replace(/\D/g, '').slice(0, boxes.length);
+  digits.split('').forEach((d, i) => {
+    boxes[i].value = d;
+    boxes[i].classList.add('filled');
+  });
+  // Focus last filled box
+  if (digits.length < boxes.length) boxes[digits.length].focus();
+}
+
+// Also handle paste — user copies OTP and pastes it
+function handleOtpPaste(e, boxesId) {
+  const pasted = (e.clipboardData || window.clipboardData).getData('text');
+  const digits = pasted.replace(/\D/g, '').slice(0, 6);
+  if (digits.length >= 4) {
+    e.preventDefault();
+    fillOtpBoxes(boxesId, digits);
+    // Auto submit on paste too
+    setTimeout(() => {
+      if (boxesId === 'login-otp-boxes') loginVerifyOtp();
+      else registerVerifyOtp();
+    }, 500);
+  }
 }
 
 function otpNext(el, boxesId) {
