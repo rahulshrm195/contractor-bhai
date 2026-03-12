@@ -1549,6 +1549,7 @@ html, body {
         <div class="pill" onclick="setTrade('cushion', this)">🛋️ Cushion</div>
         <div class="pill" onclick="setTrade('tiles', this)">🔲 Tiles</div>
         <div class="pill" onclick="setTrade('cnc', this)">⚙️ CNC</div>
+        <div class="pill" onclick="setTrade('cctv', this)">📹 CCTV</div>
         <div class="pill" data-i18n="general" onclick="setTrade('general', this)">🔨 General</div>
       </div>
       <div class="stats-bar" style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;">
@@ -1594,6 +1595,7 @@ html, body {
         <div class="pill" onclick="setJobTrade('cushion', this)">🛋️ Cushion</div>
         <div class="pill" onclick="setJobTrade('tiles', this)">🔲 Tiles</div>
         <div class="pill" onclick="setJobTrade('cnc', this)">⚙️ CNC</div>
+        <div class="pill" onclick="setJobTrade('cctv', this)">📹 CCTV</div>
         <div class="pill" onclick="setJobTrade('general', this)">🔨 General</div>
       </div>
       <div class="scroll-area">
@@ -1714,7 +1716,7 @@ html, body {
           <option value="cushion">🛋️ Cushion / Sofa</option>
           <option value="tiles">🔲 Tiles</option>
           <option value="cnc">⚙️ CNC Work</option>
-          <option value="cnc">⚙️ CNC Work</option>
+          <option value="cctv">📹 CCTV</option>
           <option value="general">🔨 General Sub-Work</option>
         </select>
       </div>
@@ -2519,7 +2521,7 @@ async function submitJob() {
   if (!title) { showToast('Kaam ka title zaroori hai.'); return; }
   if (!trade) { showToast('Trade select karna zaroori hai.'); return; }
 
-  const icons = { electrical:'⚡', plumbing:'🔧', carpentry:'🪵', masonry:'🧱', painting:'🎨', hvac:'❄️', welding:'🔥', pop:'🪟', cushion:'🛋️', tiles:'🔲', cnc:'⚙️', general:'🔨' };
+  const icons = { electrical:'⚡', plumbing:'🔧', carpentry:'🪵', masonry:'🧱', painting:'🎨', hvac:'❄️', welding:'🔥', pop:'🪟', cushion:'🛋️', tiles:'🔲', cnc:'⚙️', cctv:'📹', general:'🔨' };
   const me = currentUser;
 
   const { db, collection, addDoc, serverTimestamp } = FB();
