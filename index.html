@@ -1421,6 +1421,19 @@ html, body {
           </div>
           <input type="hidden" id="reg-usertype" value="contractor">
         </div>
+        <div class="form-group" id="subcontract-toggle-wrap">
+          <label class="form-label">सब-कॉन्ट्रैक्ट / Sub-Contract</label>
+          <div style="display:flex;gap:8px;">
+            <div id="sub-yes" onclick="setSubContract(true)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--accent);background:rgba(255,107,0,0.08);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--accent);">
+              ✅ हाँ, लेता हूँ
+            </div>
+            <div id="sub-no" onclick="setSubContract(false)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--muted);">
+              ❌ नहीं लेता
+            </div>
+          </div>
+          <input type="hidden" id="reg-subcontract" value="yes">
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">क्या आप दूसरे contractors से sub-contract लेते हैं?</div>
+        </div>
         <div class="form-group">
           <label class="form-label" data-i18n="primaryTrade">मुख्य काम / Primary Trade</label>
           <select class="form-select" id="reg-trade">
@@ -1436,6 +1449,7 @@ html, body {
             <option value="cushion">🛋️ Cushion / Sofa — कुशन का काम</option>
             <option value="tiles">🔲 Tiles — टाइल्स का काम</option>
             <option value="cnc">⚙️ CNC Work — सीएनसी का काम</option>
+            <option value="cctv">📹 CCTV — सीसीटीवी का काम</option>
             <option value="general">🔨 General Labor — सामान्य मजदूरी</option>
           </select>
         </div>
@@ -1779,6 +1793,7 @@ html, body {
           <option value="cushion">🛋️ Cushion / Sofa</option>
           <option value="tiles">🔲 Tiles</option>
           <option value="cnc">⚙️ CNC Work</option>
+          <option value="cctv">📹 CCTV</option>
           <option value="general">🔨 General Labor</option>
         </select>
       </div>
@@ -1807,6 +1822,18 @@ html, body {
           <option value="week" data-i18n="availWeek">📅 Available This Week</option>
           <option value="full" data-i18n="availFull">🔴 Booked Out</option>
         </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sub-Contract लेते हैं?</label>
+        <div style="display:flex;gap:8px;">
+          <div id="ep-sub-yes" onclick="setEpSubContract(true)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--accent);background:rgba(255,107,0,0.08);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--accent);">
+            ✅ हाँ, लेता हूँ
+          </div>
+          <div id="ep-sub-no" onclick="setEpSubContract(false)" style="flex:1;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);text-align:center;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;color:var(--muted);">
+            ❌ नहीं लेता
+          </div>
+        </div>
+        <input type="hidden" id="ep-subcontract" value="yes">
       </div>
       <div class="form-group">
         <label class="form-label" data-i18n="specializationsTap">Specializations (tap to toggle)</label>
@@ -1878,12 +1905,12 @@ let unsubJobs     = null;   // Firestore real-time listener
 const TRADE_LABELS = {
   electrical:'⚡ Electrical', plumbing:'🔧 Plumbing', carpentry:'🪵 Carpentry',
   masonry:'🧱 Masonry', hvac:'❄️ AC/HVAC', painting:'🎨 Painting',
-  welding:'🔥 Welding', pop:'🪟 POP Work', cushion:'🛋️ Cushion/Sofa', tiles:'🔲 Tiles', general:'🔨 General Labor'
+  welding:'🔥 Welding', pop:'🪟 POP Work', cushion:'🛋️ Cushion/Sofa', tiles:'🔲 Tiles', cnc:'⚙️ CNC Work', cctv:'📹 CCTV', general:'🔨 General Labor'
 };
 const TRADE_COLORS = {
   electrical:'#d97706', plumbing:'#0ea5e9', carpentry:'#c2410c',
   masonry:'#16a34a', hvac:'#7c3aed', painting:'#be185d',
-  welding:'#ea580c', pop:'#8b5cf6', cushion:'#ec4899', tiles:'#0891b2', general:'#64748b'
+  welding:'#ea580c', pop:'#8b5cf6', cushion:'#ec4899', tiles:'#0891b2', cnc:'#374151', cctv:'#1d4ed8', general:'#64748b'
 };
 const ALL_SKILLS = [
   'Modular Furniture','Wardrobe','Modular Kitchen','False Ceiling','Wooden Flooring',
@@ -2076,7 +2103,15 @@ async function registerSendOtp() {
 
   if (!first || !last) { showError('register-error', t('errName')); return; }
   if (mob.length !== 10) { showError('register-error', t('errMobileLen')); return; }
-  if (!trade) { showError('register-error', t('errTrade')); return; }
+  if (!trade) {
+    showError('register-error', t('errTrade'));
+    const tradeEl = document.getElementById('reg-trade');
+    tradeEl.style.borderColor = 'var(--danger)';
+    tradeEl.style.boxShadow = '0 0 0 3px rgba(239,68,68,0.15)';
+    setTimeout(() => { tradeEl.style.borderColor = ''; tradeEl.style.boxShadow = ''; }, 2000);
+    tradeEl.focus();
+    return;
+  }
 
   pendingRegData = { first, last, mob, trade, rate, exp, loc, bio, avail };
   hideError('register-error');
@@ -2120,7 +2155,7 @@ async function registerVerifyOtp() {
       availFrom: d.avail === 'now' ? 'Abhi se' : d.avail === 'week' ? 'Is hafte' : 'Baad mein',
       rating: 0, jobsDone: 0, skills: [], workTypes: ['Negotiable'],
       color: TRADE_COLORS[d.trade] || '#ff6b00',
-      verified: false, isContractor: true, userType: document.getElementById('reg-usertype')?.value || 'contractor', initials,
+      verified: false, isContractor: true, userType: document.getElementById('reg-usertype')?.value || 'contractor', subContract: document.getElementById('reg-subcontract')?.value || 'yes', initials,
       createdAt: FB().serverTimestamp(),
     };
 
@@ -2285,7 +2320,7 @@ function renderContractors(list) {
           <div class="name-row">
             <span class="card-name">${c.firstName} ${c.lastName}</span>
             ${c.verified ? '<span title="Verified" style="font-size:12px">✅</span>' : ''}
-            ${c.userType === 'supplier' ? '<span style="font-size:10px;background:rgba(14,165,233,0.12);color:#0ea5e9;border:1px solid #0ea5e9;border-radius:4px;padding:1px 5px;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.5px;">SUPPLIER</span>' : ''}
+            ${c.userType === 'supplier' ? '<span style="font-size:10px;background:rgba(14,165,233,0.12);color:#0ea5e9;border:1px solid #0ea5e9;border-radius:4px;padding:1px 5px;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.5px;">SUPPLIER</span>' : ''}${c.subContract === 'yes' || c.subContract === undefined ? '<span style="font-size:10px;background:rgba(34,197,94,0.12);color:#16a34a;border:1px solid #16a34a;border-radius:4px;padding:1px 5px;font-family:Barlow Condensed,sans-serif;font-weight:700;letter-spacing:0.5px;margin-left:2px;">SUB ✓</span>' : ''}
             ${isMe ? `<span class="you-badge">${t('youBadge')}</span>` : ''}
           </div>
           <div class="card-trade" style="color:${c.color||'#ff6b00'}">${TRADE_LABELS[c.trade]||c.trade}</div>
@@ -2624,6 +2659,32 @@ function renderProfile() {
   `;
 }
 
+function setSubContract(val) {
+  document.getElementById('reg-subcontract').value = val ? 'yes' : 'no';
+  const yes = document.getElementById('sub-yes');
+  const no  = document.getElementById('sub-no');
+  if (val) {
+    yes.style.border = '2px solid var(--accent)'; yes.style.background = 'rgba(255,107,0,0.08)'; yes.style.color = 'var(--accent)';
+    no.style.border  = '2px solid var(--border)';  no.style.background  = 'var(--surface2)';      no.style.color  = 'var(--muted)';
+  } else {
+    no.style.border  = '2px solid var(--accent)'; no.style.background  = 'rgba(255,107,0,0.08)'; no.style.color  = 'var(--accent)';
+    yes.style.border = '2px solid var(--border)'; yes.style.background = 'var(--surface2)';      yes.style.color = 'var(--muted)';
+  }
+}
+
+function setEpSubContract(val) {
+  document.getElementById('ep-subcontract').value = val ? 'yes' : 'no';
+  const yes = document.getElementById('ep-sub-yes');
+  const no  = document.getElementById('ep-sub-no');
+  if (val) {
+    yes.style.border = '2px solid var(--accent)'; yes.style.background = 'rgba(255,107,0,0.08)'; yes.style.color = 'var(--accent)';
+    no.style.border  = '2px solid var(--border)';  no.style.background  = 'var(--surface2)';      no.style.color  = 'var(--muted)';
+  } else {
+    no.style.border  = '2px solid var(--accent)'; no.style.background  = 'rgba(255,107,0,0.08)'; no.style.color  = 'var(--accent)';
+    yes.style.border = '2px solid var(--border)'; yes.style.background = 'var(--surface2)';      yes.style.color = 'var(--muted)';
+  }
+}
+
 function openEditModal() {
   const u = currentUser;
   document.getElementById('ep-first').value    = u.firstName || '';
@@ -2634,6 +2695,7 @@ function openEditModal() {
   document.getElementById('ep-location').value = u.location  || '';
   document.getElementById('ep-bio').value      = u.bio       || '';
   document.getElementById('ep-avail').value    = u.avail     || 'now';
+  setEpSubContract((u.subContract !== 'no'));
   selectedSkills = [...(u.skills || [])];
   renderSkillCheckboxes();
   openModal('modal-edit');
@@ -2652,6 +2714,7 @@ async function saveProfile() {
     location:  document.getElementById('ep-location').value.trim(),
     bio:       document.getElementById('ep-bio').value.trim(),
     avail:     document.getElementById('ep-avail').value,
+    subContract: document.getElementById('ep-subcontract').value,
     skills:    [...selectedSkills],
     initials:  (newFirst[0]+newLast[0]).toUpperCase(),
     color:     TRADE_COLORS[document.getElementById('ep-trade').value] || currentUser.color,

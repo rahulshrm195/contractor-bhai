@@ -2,6 +2,15 @@
 
 ---
 
+## v2.8 — 12 Mar 2026
+### Added
+- Sub-contract preference — yes/no toggle during registration and editable in profile
+- SUB ✓ green badge on contractor cards who accept sub-contracts
+- CCTV 📹 trade added everywhere — dropdowns, filters, cards, trade colors
+- Trade selection mandatory on registration — red border highlight + auto focus if skipped
+
+---
+
 ## v2.7 — 12 Mar 2026
 ### Added
 - OTP auto-read on Android Chrome — SMS pops up automatically, one tap fills all 6 boxes
